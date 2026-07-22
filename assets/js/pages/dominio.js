@@ -1,0 +1,4 @@
+import { bootstrapPage, db, $, toast } from "../admin-core.js";
+import { doc,getDoc,setDoc,serverTimestamp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+async function load(){const s=await getDoc(doc(db,'configuracoes','dominio'));if(!s.exists())return;$("publicDomain").value=s.data().publicDomain||'';$("adminDomain").value=s.data().adminDomain||'';}
+bootstrapPage({permission:'configuracoes',onReady:async()=>{await load();$("domainForm").onsubmit=async e=>{e.preventDefault();await setDoc(doc(db,'configuracoes','dominio'),{publicDomain:$("publicDomain").value.trim(),adminDomain:$("adminDomain").value.trim(),updatedAt:serverTimestamp()},{merge:true});await setDoc(doc(db,'configuracoes','publico'),{domain:$("publicDomain").value.trim(),updatedAt:serverTimestamp()},{merge:true});toast('Domínios salvos');};}});

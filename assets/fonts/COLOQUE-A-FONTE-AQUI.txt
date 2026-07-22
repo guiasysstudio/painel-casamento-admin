@@ -1,0 +1,8 @@
+Copie para esta pasta UM dos arquivos originais que você já possui:
+
+- Meritta Serif.ttf
+ou
+- Meritta Serif.otf
+
+Mantenha exatamente esse nome. O site já está configurado para reconhecer os dois formatos.
+A fonte não foi incluída neste pacote.
