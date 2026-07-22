@@ -1,24 +1,26 @@
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Página inicial — Painel ADM</title><link rel="icon" href="assets/img/monograma.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/css/admin.css"></head>
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Página inicial — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><link href="assets/css/admin.css" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/></head>
 <body data-page="pagina-inicial">
-<div id="adminApp" class="admin-layout admin-auth-pending" aria-busy="true">
-<aside id="adminSidebar" class="admin-sidebar">
-<a class="admin-brand" href="index.html"><img src="assets/img/monograma.svg" alt=""><span>Painel ADM</span></a>
-<nav class="admin-nav"><a href="index.html" data-nav-page="dashboard"><span class="nav-icon">⌂</span>Visão geral</a>
-<a href="confirmacoes.html" data-nav-page="confirmacoes"><span class="nav-icon">✓</span>Confirmações</a>
-<a href="presentes.html" data-nav-page="presentes"><span class="nav-icon">🎁</span>Presentes</a>
-<a href="reservas.html" data-nav-page="reservas"><span class="nav-icon">⌛</span>Reservas</a>
-<a href="pix.html" data-nav-page="pix"><span class="nav-icon">R$</span>PIX</a>
-<a href="pagina-inicial.html" data-nav-page="pagina-inicial"><span class="nav-icon">✦</span>Página inicial</a>
-<a href="entrega.html" data-nav-page="entrega"><span class="nav-icon">⌖</span>Entrega</a>
-<a href="administradores.html" data-nav-page="administradores"><span class="nav-icon">👤</span>Administradores</a>
-<a href="dominio.html" data-nav-page="dominio"><span class="nav-icon">🌐</span>Domínio</a>
-<a href="exportacoes.html" data-nav-page="exportacoes"><span class="nav-icon">⇩</span>Exportações</a>
-<a href="logs.html" data-nav-page="logs"><span class="nav-icon">☷</span>Logs e backup</a></nav>
-<div class="sidebar-footer"><button id="logoutButton" class="btn btn-ghost" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)">Sair</button></div>
+<div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
+<aside class="admin-sidebar" id="adminSidebar">
+<a class="admin-brand" href="index.html"><img alt="" src="assets/img/monograma.svg"/><span>Painel ADM</span></a>
+<nav class="admin-nav"><a data-nav-page="dashboard" href="index.html"><span class="nav-icon">⌂</span>Visão geral</a>
+<a data-nav-page="confirmacoes" href="confirmacoes.html"><span class="nav-icon">✓</span>Confirmações</a>
+<a data-nav-page="presentes" href="presentes.html"><span class="nav-icon">🎁</span>Presentes</a>
+<a data-nav-page="reservas" href="reservas.html"><span class="nav-icon">⌛</span>Reservas</a>
+<a data-nav-page="pix" href="pix.html"><span class="nav-icon">R$</span>PIX</a>
+<a data-nav-page="pagina-inicial" href="pagina-inicial.html"><span class="nav-icon">✦</span>Página inicial</a>
+<a data-nav-page="entrega" href="entrega.html"><span class="nav-icon">⌖</span>Entrega</a>
+<a data-nav-page="administradores" href="administradores.html"><span class="nav-icon">👤</span>Administradores</a>
+<a data-nav-page="dominio" href="dominio.html"><span class="nav-icon">🌐</span>Domínio</a>
+<a data-nav-page="exportacoes" href="exportacoes.html"><span class="nav-icon">⇩</span>Exportações</a>
+<a data-nav-page="logs" href="logs.html"><span class="nav-icon">☷</span>Logs e backup</a></nav>
+<div class="sidebar-footer"><button class="btn btn-ghost" id="logoutButton" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)">Sair</button></div>
 </aside>
-<main class="admin-main"><div id="pageLoader" class="page-loader" role="status" aria-live="polite"><span class="page-loader-spinner" aria-hidden="true"></span><span id="pageLoaderText">Carregando página...</span></div>
-<header class="admin-topbar"><div class="topbar-left"><button id="menuToggle" class="menu-toggle" type="button" aria-label="Abrir menu">☰</button><div><p class="eyebrow">Administração</p><h1>Página inicial</h1></div></div><div class="user-chip"><img id="userPhoto" alt=""><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
-<section class="admin-form-card"><div class="section-head"><div><h2>Conteúdo da página inicial</h2><p class="section-description">Esses dados aparecem no site público.</p></div></div><form id="siteConfigForm"><div class="form-grid"><div class="field"><label>Nome do site</label><input id="siteName" required></div><div class="field"><label>Título do navegador</label><input id="pageTitle" required></div><div class="field full"><label>Texto de apresentação</label><textarea id="introText" required></textarea></div><div class="field"><label>Data e horário do casamento</label><input id="weddingDate" type="datetime-local" required></div><div class="field"><label>Prazo de confirmação</label><input id="confirmationDeadline" type="datetime-local" required></div><div class="field"><label>Local</label><input id="venueName" required></div><div class="field"><label>Idade máxima de criança</label><input id="childMaxAge" type="number" min="0" max="17" required></div><div class="field full"><label>Endereço do casamento</label><input id="venueAddress" required></div><div class="field full"><label>Link do Google Maps</label><input id="mapsUrl" type="url"></div><div class="field"><label>Duração da reserva (horas)</label><input id="reservationHours" type="number" min="1" max="168" required></div></div><div class="actions"><button class="btn btn-primary">Salvar página inicial</button></div></form></section>
-</main></div><div id="toast" class="toast hidden"></div>
-<script type="module" src="assets/js/pages/pagina-inicial.js"></script></body></html>
+<main class="admin-main"><div aria-live="polite" class="page-loader" id="pageLoader" role="status"><span aria-hidden="true" class="page-loader-spinner"></span><span id="pageLoaderText">Carregando página...</span></div>
+<header class="admin-topbar"><div class="topbar-left"><button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button">☰</button><div><p class="eyebrow">Administração</p><h1>Página inicial</h1></div></div><div class="user-chip"><img alt="" id="userPhoto"/><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
+<section class="admin-form-card"><div class="section-head"><div><h2>Conteúdo da página inicial</h2><p class="section-description">Esses dados aparecem no site público.</p></div></div><form id="siteConfigForm"><div class="form-grid"><div class="field"><label>Nome do site</label><input id="siteName" required=""/></div><div class="field"><label>Título do navegador</label><input id="pageTitle" required=""/></div><div class="field full"><label>Texto de apresentação</label><textarea id="introText" required=""></textarea></div><div class="field"><label>Data e horário do casamento</label><input id="weddingDate" required="" type="datetime-local"/></div><div class="field"><label>Prazo de confirmação</label><input id="confirmationDeadline" required="" type="datetime-local"/></div><div class="field"><label>Local</label><input id="venueName" required=""/></div><div class="field"><label>Idade máxima de criança</label><input id="childMaxAge" max="17" min="0" required="" type="number"/></div><div class="field full"><label>Endereço do casamento</label><input id="venueAddress" required=""/></div><div class="field full"><label>Link do Google Maps</label><input id="mapsUrl" type="url"/></div><div class="field"><label>Duração da reserva (horas)</label><input id="reservationHours" max="168" min="1" required="" type="number"/></div></div><div class="actions"><button class="btn btn-primary">Salvar página inicial</button></div></form></section>
+</main></div><div class="toast hidden" id="toast"></div>
+<script src="assets/js/pages/pagina-inicial.js" type="module"></script></body></html>
