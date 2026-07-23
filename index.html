@@ -1,7 +1,51 @@
 <!doctype html>
 <!DOCTYPE html>
 
-<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Visão geral — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><link href="assets/css/admin.css" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/></head>
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Visão geral — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><script id="admin-menu-session-bootstrap">
+(function () {
+  try {
+    var user = JSON.parse(
+      sessionStorage.getItem("adminShellUser") || "null"
+    );
+    var access = JSON.parse(
+      sessionStorage.getItem("adminShellAccess") || "null"
+    );
+
+    if (!user || !access || access.active !== true) return;
+
+    var userEmail = String(user.email || "").trim().toLowerCase();
+    var accessEmail = String(access.email || "").trim().toLowerCase();
+
+    /*
+     * Cache antigo sem e-mail não é usado. Depois de uma autenticação
+     * com a versão 2.6.5, o cache já estará vinculado à conta correta.
+     */
+    if (!userEmail || !accessEmail || userEmail !== accessEmail) return;
+
+    var root = document.documentElement;
+    root.classList.add("admin-menu-session-ready");
+
+    if (access.role === "master") {
+      root.classList.add("admin-menu-master");
+      return;
+    }
+
+    var permissions = access.permissions || {};
+
+    Object.keys(permissions).forEach(function (permission) {
+      if (permissions[permission] === true) {
+        root.classList.add("admin-perm-" + permission);
+      }
+    });
+  } catch (error) {
+    sessionStorage.removeItem("adminShellAccess");
+  }
+})();
+</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/></head>
 <body data-page="dashboard">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
@@ -25,4 +69,4 @@
 <section class="dashboard-grid"><article class="dashboard-card"><span>Famílias confirmadas</span><strong id="statFamilies">0</strong></article><article class="dashboard-card"><span>Adultos</span><strong id="statAdults">0</strong></article><article class="dashboard-card"><span>Crianças</span><strong id="statChildren">0</strong></article><article class="dashboard-card"><span>Presentes visíveis</span><strong id="statGifts">0</strong></article><article class="dashboard-card"><span>Reservas ativas</span><strong id="statReservations">0</strong></article><article class="dashboard-card"><span>PIX pendentes</span><strong id="statPixPending">0</strong></article></section>
 <section class="quick-grid"><a class="quick-card" href="confirmacoes.html"><strong>Confirmações</strong><span>Adultos, crianças e famílias.</span></a><a class="quick-card" href="presentes.html"><strong>Presentes</strong><span>Cadastro e status dos itens.</span></a><a class="quick-card" href="pix.html"><strong>PIX</strong><span>Configuração e confirmações.</span></a></section>
 </main></div><div class="toast hidden" id="toast"></div>
-<script src="assets/js/pages/dashboard.js" type="module"></script></body></html>
+<script src="assets/js/pages/dashboard.js?v=2.6.5" type="module"></script></body></html>

@@ -295,3 +295,62 @@ tbody tr:hover { background:rgba(216,193,163,.10); }
     animation: none;
   }
 }
+
+/* MENU ESTÁVEL POR PERMISSÃO — 2.6.5 */
+
+/*
+ * Todos os módulos começam ocultos. O script síncrono no <head>
+ * acrescenta as classes da sessão antes do primeiro desenho da página.
+ */
+.admin-nav [data-nav-page] {
+  display: none !important;
+}
+
+/* Visão geral é comum a qualquer administrador ativo. */
+html.admin-menu-session-ready
+  .admin-nav [data-nav-page="dashboard"] {
+  display: flex !important;
+}
+
+/* Conta Master vê todos os módulos. */
+html.admin-menu-master .admin-nav [data-nav-page] {
+  display: flex !important;
+}
+
+/* Permissões individuais. */
+html.admin-perm-confirmacoes
+  .admin-nav [data-nav-page="confirmacoes"],
+html.admin-perm-presentes
+  .admin-nav [data-nav-page="presentes"],
+html.admin-perm-reservas
+  .admin-nav [data-nav-page="reservas"],
+html.admin-perm-pix
+  .admin-nav [data-nav-page="pix"],
+html.admin-perm-configuracoes
+  .admin-nav [data-nav-page="pagina-inicial"],
+html.admin-perm-configuracoes
+  .admin-nav [data-nav-page="entrega"],
+html.admin-perm-configuracoes
+  .admin-nav [data-nav-page="dominio"],
+html.admin-perm-exportacoes
+  .admin-nav [data-nav-page="exportacoes"],
+html.admin-perm-logs
+  .admin-nav [data-nav-page="logs"] {
+  display: flex !important;
+}
+
+/*
+ * Administradores é exclusivo de Master, mesmo que um cadastro antigo
+ * tenha a permissão "administradores" marcada.
+ */
+html:not(.admin-menu-master)
+  .admin-nav [data-nav-page="administradores"] {
+  display: none !important;
+}
+
+/* Sem animação, mudança de opacidade ou atraso no menu. */
+.admin-nav,
+.admin-nav [data-nav-page] {
+  transition: none !important;
+  animation: none !important;
+}

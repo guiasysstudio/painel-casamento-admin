@@ -1,7 +1,51 @@
 <!doctype html>
 <!DOCTYPE html>
 
-<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>PIX — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><link href="assets/css/admin.css" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/></head>
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>PIX — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><script id="admin-menu-session-bootstrap">
+(function () {
+  try {
+    var user = JSON.parse(
+      sessionStorage.getItem("adminShellUser") || "null"
+    );
+    var access = JSON.parse(
+      sessionStorage.getItem("adminShellAccess") || "null"
+    );
+
+    if (!user || !access || access.active !== true) return;
+
+    var userEmail = String(user.email || "").trim().toLowerCase();
+    var accessEmail = String(access.email || "").trim().toLowerCase();
+
+    /*
+     * Cache antigo sem e-mail não é usado. Depois de uma autenticação
+     * com a versão 2.6.5, o cache já estará vinculado à conta correta.
+     */
+    if (!userEmail || !accessEmail || userEmail !== accessEmail) return;
+
+    var root = document.documentElement;
+    root.classList.add("admin-menu-session-ready");
+
+    if (access.role === "master") {
+      root.classList.add("admin-menu-master");
+      return;
+    }
+
+    var permissions = access.permissions || {};
+
+    Object.keys(permissions).forEach(function (permission) {
+      if (permissions[permission] === true) {
+        root.classList.add("admin-perm-" + permission);
+      }
+    });
+  } catch (error) {
+    sessionStorage.removeItem("adminShellAccess");
+  }
+})();
+</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/></head>
 <body data-page="pix">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
@@ -23,4 +67,4 @@
 <header class="admin-topbar"><div class="topbar-left"><button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button">☰</button><div><p class="eyebrow">Administração</p><h1>PIX</h1></div></div><div class="user-chip"><img alt="" id="userPhoto"/><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
 <section class="page-card"><div class="section-head"><div><h2>PIX informados</h2><p class="section-description">Confirme manualmente os pagamentos informados pelos convidados.</p></div><button class="btn btn-secondary" id="reloadButton">Atualizar</button></div><div class="admin-table-wrap" id="tableArea"></div></section><section class="admin-form-card" style="margin-top:22px"><h2>Configuração do PIX</h2><form id="pixConfigForm"><div class="form-grid"><div class="field"><label>Tipo da chave</label><select id="pixKeyType"><option value="aleatoria">Aleatória</option><option value="telefone">Telefone</option><option value="email">E-mail</option><option value="cpf">CPF</option><option value="cnpj">CNPJ</option></select></div><div class="field"><label>Chave PIX</label><input id="pixKey" required=""/></div><div class="field"><label>Nome do titular</label><input id="pixHolderName" maxlength="25" required=""/></div><div class="field"><label>Cidade do titular</label><input id="pixCity" maxlength="15" required=""/></div><div class="field full"><label>Descrição</label><input id="pixDescription" value="PRESENTE DE CASAMENTO"/></div><div class="field full"><label class="checkbox-row"><input id="pixActive" type="checkbox"/>PIX ativo no site público</label></div></div><div class="actions"><button class="btn btn-primary">Salvar PIX</button></div></form></section>
 </main></div><div class="toast hidden" id="toast"></div>
-<script src="assets/js/pages/pix.js" type="module"></script></body></html>
+<script src="assets/js/pages/pix.js?v=2.6.5" type="module"></script></body></html>

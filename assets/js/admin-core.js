@@ -4,6 +4,20 @@ import { doc, getDoc, setDoc, serverTimestamp, Timestamp, writeBatch } from "htt
 export { db };
 export const MASTER_EMAIL = "lindolfoandrew0@gmail.com";
 export const PERMISSIONS = ["confirmacoes","presentes","reservas","pix","configuracoes","administradores","exportacoes","logs"];
+
+export const NAV_PERMISSION_MAP = Object.freeze({
+  dashboard: null,
+  confirmacoes: "confirmacoes",
+  presentes: "presentes",
+  reservas: "reservas",
+  pix: "pix",
+  "pagina-inicial": "configuracoes",
+  entrega: "configuracoes",
+  dominio: "configuracoes",
+  administradores: "administradores",
+  exportacoes: "exportacoes",
+  logs: "logs"
+});
 export let currentUser = null;
 export let currentAdmin = null;
 
@@ -22,6 +36,71 @@ export function toast(message) {
 
 export function hasPermission(permission) {
   return currentAdmin?.role === "master" || currentAdmin?.permissions?.[permission] === true;
+}
+
+export function canAccessAdminPage(page, admin = currentAdmin) {
+  if (!page || page === "dashboard") return true;
+  if (!admin || admin.active !== true) return false;
+  if (admin.role === "master") return true;
+
+  /*
+   * O gerenciamento de administradores permanece exclusivo de Master,
+   * mesmo que um cadastro antigo tenha essa permissão marcada.
+   */
+  if (page === "administradores") return false;
+
+  const permission = NAV_PERMISSION_MAP[page];
+  return Boolean(permission && admin.permissions?.[permission] === true);
+}
+
+function applyMenuAccessClasses(admin) {
+  const root = document.documentElement;
+
+  root.classList.remove(
+    "admin-menu-session-ready",
+    "admin-menu-master",
+    ...PERMISSIONS.map(permission => `admin-perm-${permission}`)
+  );
+
+  if (!admin || admin.active !== true) {
+    return;
+  }
+
+  root.classList.add("admin-menu-session-ready");
+
+  if (admin.role === "master") {
+    root.classList.add("admin-menu-master");
+    return;
+  }
+
+  PERMISSIONS.forEach(permission => {
+    if (admin.permissions?.[permission] === true) {
+      root.classList.add(`admin-perm-${permission}`);
+    }
+  });
+}
+
+export function applyAdminMenuPermissions(admin = currentAdmin) {
+  /*
+   * Primeiro atualiza as classes do menu. Os links permitidos que já
+   * estavam visíveis pela sessão permanecem no mesmo lugar, sem piscar.
+   */
+  applyMenuAccessClasses(admin);
+
+  document.querySelectorAll("[data-nav-page]").forEach(link => {
+    const allowed = canAccessAdminPage(
+      link.dataset.navPage,
+      admin
+    );
+
+    if (!allowed) {
+      link.remove();
+      return;
+    }
+
+    link.hidden = false;
+    link.removeAttribute("aria-hidden");
+  });
 }
 
 export async function ensureAdmin(user) {
@@ -55,8 +134,15 @@ function restoreCachedUser() {
     if ($("userName")) $("userName").textContent = cached.name || "Administrador";
     if ($("userEmail")) $("userEmail").textContent = cached.email || "";
     if ($("userPhoto")) $("userPhoto").src = cached.photo || "assets/img/monograma.png";
+
+    /*
+     * Nome, e-mail e foto podem vir do cache para evitar piscada.
+     * As permissões nunca vêm do cache: elas são confirmadas novamente
+     * no Firestore antes de o menu ser exibido.
+     */
   } catch {
     sessionStorage.removeItem("adminShellUser");
+    sessionStorage.removeItem("adminShellAccess");
   }
 }
 
@@ -67,6 +153,10 @@ function beginPageNavigation(destination) {
     return;
   }
 
+  /*
+   * As permissões permanecem no elemento <html> durante a navegação.
+   * Assim o menu autorizado não desaparece antes da próxima página.
+   */
   app.classList.add("admin-page-leaving");
   app.setAttribute("aria-busy", "true");
   if ($("pageLoaderText")) $("pageLoaderText").textContent = "Carregando página...";
@@ -115,6 +205,7 @@ function setupShell() {
 
   $("logoutButton")?.addEventListener("click", async () => {
     sessionStorage.removeItem("adminShellUser");
+    sessionStorage.removeItem("adminShellAccess");
     await logout();
     location.href = "login.html";
   });
@@ -132,6 +223,15 @@ function fillUser(user, admin) {
   if ($("userPhoto")) $("userPhoto").src = shellUser.photo;
 
   sessionStorage.setItem("adminShellUser", JSON.stringify(shellUser));
+  sessionStorage.setItem(
+    "adminShellAccess",
+    JSON.stringify({
+      email: emailId(user.email),
+      role: admin.role || "admin",
+      active: admin.active === true,
+      permissions: admin.permissions || {}
+    })
+  );
 }
 
 function revealPage() {
@@ -154,6 +254,7 @@ export async function bootstrapPage({ permission = null, onReady = async () => {
   observeAuth(async user => {
     if (!user) {
       sessionStorage.removeItem("adminShellUser");
+      sessionStorage.removeItem("adminShellAccess");
       location.href = "login.html";
       return;
     }
@@ -162,6 +263,7 @@ export async function bootstrapPage({ permission = null, onReady = async () => {
       currentUser = user;
       currentAdmin = await ensureAdmin(user);
       fillUser(user, currentAdmin);
+      applyAdminMenuPermissions(currentAdmin);
 
       if (permission && !hasPermission(permission)) {
         showAccessDenied();
@@ -176,6 +278,7 @@ export async function bootstrapPage({ permission = null, onReady = async () => {
       console.error(error);
       sessionStorage.setItem("adminLoginError", error.message);
       sessionStorage.removeItem("adminShellUser");
+      sessionStorage.removeItem("adminShellAccess");
       await logout();
       location.href = "login.html";
     }
@@ -249,7 +352,8 @@ export async function startLoginPage() {
   observeAuth(async user => {
     if (!user) return;
     try {
-      await ensureAdmin(user);
+      const admin = await ensureAdmin(user);
+      fillUser(user, admin);
       location.href = "index.html";
     } catch (error) {
       message.textContent = error.message;

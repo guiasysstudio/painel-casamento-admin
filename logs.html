@@ -1,7 +1,51 @@
 <!doctype html>
 <!DOCTYPE html>
 
-<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Logs e backup — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><link href="assets/css/admin.css" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/></head>
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Logs e backup — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><script id="admin-menu-session-bootstrap">
+(function () {
+  try {
+    var user = JSON.parse(
+      sessionStorage.getItem("adminShellUser") || "null"
+    );
+    var access = JSON.parse(
+      sessionStorage.getItem("adminShellAccess") || "null"
+    );
+
+    if (!user || !access || access.active !== true) return;
+
+    var userEmail = String(user.email || "").trim().toLowerCase();
+    var accessEmail = String(access.email || "").trim().toLowerCase();
+
+    /*
+     * Cache antigo sem e-mail não é usado. Depois de uma autenticação
+     * com a versão 2.6.5, o cache já estará vinculado à conta correta.
+     */
+    if (!userEmail || !accessEmail || userEmail !== accessEmail) return;
+
+    var root = document.documentElement;
+    root.classList.add("admin-menu-session-ready");
+
+    if (access.role === "master") {
+      root.classList.add("admin-menu-master");
+      return;
+    }
+
+    var permissions = access.permissions || {};
+
+    Object.keys(permissions).forEach(function (permission) {
+      if (permissions[permission] === true) {
+        root.classList.add("admin-perm-" + permission);
+      }
+    });
+  } catch (error) {
+    sessionStorage.removeItem("adminShellAccess");
+  }
+})();
+</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/></head>
 <body data-page="logs">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
@@ -23,4 +67,4 @@
 <header class="admin-topbar"><div class="topbar-left"><button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button">☰</button><div><p class="eyebrow">Administração</p><h1>Logs e backup</h1></div></div><div class="user-chip"><img alt="" id="userPhoto"/><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
 <section class="page-card"><div class="section-head"><div><h2>Logs e backup</h2><p class="section-description">Área reservada ao histórico administrativo e cópias de segurança.</p></div></div><div class="notice warning">A estrutura da página já está separada. O registro detalhado de ações e o backup seletivo serão implementados depois dos testes completos dos módulos principais.</div></section>
 </main></div><div class="toast hidden" id="toast"></div>
-<script src="assets/js/pages/logs.js" type="module"></script></body></html>
+<script src="assets/js/pages/logs.js?v=2.6.5" type="module"></script></body></html>

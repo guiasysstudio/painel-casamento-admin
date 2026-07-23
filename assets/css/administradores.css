@@ -1,0 +1,83 @@
+.admin-permission-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-width: 430px;
+}
+
+.permission-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--ivory);
+  font-size: .72rem;
+  line-height: 1;
+}
+
+.permission-chip.master {
+  color: var(--white);
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+.admin-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-width: 255px;
+}
+
+.admin-action-buttons .btn {
+  white-space: nowrap;
+}
+
+.admin-account-name {
+  display: grid;
+  gap: 3px;
+}
+
+.admin-account-name small {
+  color: var(--muted);
+}
+
+.edit-active-row {
+  align-self: end;
+  min-height: 48px;
+  padding: 0 4px;
+}
+
+.edit-modal-actions {
+  justify-content: flex-end;
+}
+
+#editAdminMessage,
+#adminFormMessage {
+  margin-top: 16px;
+}
+
+@media (max-width: 720px) {
+  .admin-action-buttons {
+    min-width: 190px;
+  }
+
+  .admin-action-buttons .btn {
+    flex: 1 1 calc(50% - 4px);
+  }
+
+  .admin-permission-summary {
+    min-width: 250px;
+  }
+
+  .edit-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .edit-modal-actions .btn {
+    width: 100%;
+  }
+}

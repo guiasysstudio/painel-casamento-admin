@@ -1,7 +1,59 @@
 <!doctype html>
 <!DOCTYPE html>
 
-<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Presentes — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><link href="assets/css/admin.css" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/></head>
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Presentes — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><script id="admin-menu-session-bootstrap">
+(function () {
+  try {
+    var user = JSON.parse(
+      sessionStorage.getItem("adminShellUser") || "null"
+    );
+    var access = JSON.parse(
+      sessionStorage.getItem("adminShellAccess") || "null"
+    );
+
+    if (!user || !access || access.active !== true) return;
+
+    var userEmail = String(user.email || "").trim().toLowerCase();
+    var accessEmail = String(access.email || "").trim().toLowerCase();
+
+    /*
+     * Cache antigo sem e-mail não é usado. Depois de uma autenticação
+     * com a versão 2.6.5, o cache já estará vinculado à conta correta.
+     */
+    if (!userEmail || !accessEmail || userEmail !== accessEmail) return;
+
+    var root = document.documentElement;
+    root.classList.add("admin-menu-session-ready");
+
+    if (access.role === "master") {
+      root.classList.add("admin-menu-master");
+      return;
+    }
+
+    var permissions = access.permissions || {};
+
+    Object.keys(permissions).forEach(function (permission) {
+      if (permissions[permission] === true) {
+        root.classList.add("admin-perm-" + permission);
+      }
+    });
+  } catch (error) {
+    sessionStorage.removeItem("adminShellAccess");
+  }
+})();
+</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/><link href="assets/css/presentes-imagens.css?v=2.6.8" rel="stylesheet"/></head>
 <body data-page="presentes">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
@@ -22,6 +74,141 @@
 <main class="admin-main"><div aria-live="polite" class="page-loader" id="pageLoader" role="status"><span aria-hidden="true" class="page-loader-spinner"></span><span id="pageLoaderText">Carregando página...</span></div>
 <header class="admin-topbar"><div class="topbar-left"><button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button">☰</button><div><p class="eyebrow">Administração</p><h1>Presentes</h1></div></div><div class="user-chip"><img alt="" id="userPhoto"/><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
 <section class="page-card"><div class="section-head"><div><h2>Cadastro de presentes</h2><p class="section-description">Edite produtos, valores, lojas, imagens e visibilidade.</p></div><div class="actions" style="margin:0"><button class="btn btn-secondary" id="reloadButton">Atualizar</button><button class="btn btn-primary" id="newGiftButton">Novo presente</button></div></div><div class="admin-table-wrap" id="tableArea"></div></section>
-<div class="modal hidden" id="giftModal"><div class="modal-card large"><div class="modal-header"><div><p class="eyebrow">Cadastro</p><h2 id="giftModalTitle">Presente</h2></div><button class="modal-close" data-close-modal="" type="button">✕</button></div><form id="giftForm"><input id="giftId" type="hidden"/><div class="form-grid"><div class="field"><label>Nome</label><input id="giftName" required=""/></div><div class="field"><label>Categoria</label><input id="giftCategory" required=""/></div><div class="field"><label>Valor estimado</label><input id="giftValue" min="0" required="" step=".01" type="number"/></div><div class="field"><label>Loja</label><input id="giftStore"/></div><div class="field full"><label>Link de compra</label><input id="giftLink" type="url"/></div><div class="field full"><label>URL da imagem</label><input id="giftImageUrl" placeholder="Cole uma URL ou envie um arquivo abaixo" type="url"/></div><div class="field full"><label>Enviar imagem</label><input accept="image/*" id="giftImageFile" type="file"/><small>A imagem será reduzida antes de ser salva.</small></div><div class="field"><img alt="Prévia" class="image-preview" id="giftImagePreview"/></div><div class="field"><label class="checkbox-row"><input checked="" id="giftActive" type="checkbox"/>Cadastro ativo</label><label class="checkbox-row"><input checked="" id="giftVisible" type="checkbox"/>Visível no site público</label></div></div><div class="notice hidden" id="giftFormMessage" style="margin-top:16px"></div><div class="actions"><button class="btn btn-primary">Salvar presente</button><button class="btn btn-ghost" data-close-modal="" type="button">Cancelar</button></div></form></div></div>
+<div class="modal hidden" id="giftModal"><div class="modal-card large"><div class="modal-header"><div><p class="eyebrow">Cadastro</p><h2 id="giftModalTitle">Presente</h2></div><button class="modal-close" data-close-modal="" type="button">✕</button></div><form id="giftForm"><input id="giftId" type="hidden"/><div class="form-grid">
+<div class="field">
+<label for="giftName">Nome</label>
+<input id="giftName" required=""/>
+</div>
+<div class="field">
+<label for="giftCategory">Categoria</label>
+<input id="giftCategory" required=""/>
+</div>
+<div class="field">
+<label for="giftValue">Valor estimado</label>
+<input id="giftValue" min="0" required="" step=".01" type="number"/>
+</div>
+<div class="field">
+<label for="giftStore">Loja</label>
+<input id="giftStore"/>
+</div>
+<div class="field full">
+<label for="giftLink">Link de compra</label>
+<input id="giftLink" type="url"/>
+</div>
+<div class="field full image-source-card">
+<div class="image-section-title">
+<div>
+<span class="field-label">Imagem do produto</span>
+<small>
+          Use um link direto da imagem ou faça upload de JPG, PNG ou WebP.
+        </small>
+</div>
+</div>
+<div class="image-source-grid">
+<div class="field">
+<label for="giftImageUrl">Link direto da imagem</label>
+<input id="giftImageUrl" placeholder="https://loja.com/imagem-do-produto.jpg" type="url"/>
+<button class="btn btn-secondary image-inline-button" id="processImageUrlButton" type="button">
+          Carregar e testar link
+        </button>
+</div>
+<div aria-hidden="true" class="image-source-divider">
+<span>ou</span>
+</div>
+<div class="field">
+<label for="giftImageFile">Enviar imagem</label>
+<input accept="image/png,image/jpeg,image/webp" id="giftImageFile" type="file"/>
+<small>
+          O upload é processado no navegador e comprimido antes de salvar.
+        </small>
+</div>
+</div>
+</div>
+<div class="field">
+<label for="giftImageMode">Tratamento da imagem</label>
+<select id="giftImageMode">
+<option value="fit">Ajustar ao card</option>
+<option value="remove-white">Remover fundo branco</option>
+<option value="original">Manter imagem original</option>
+</select>
+</div>
+<div class="field" id="thresholdField">
+<label for="giftImageThreshold">
+      Intensidade da remoção:
+      <strong id="giftThresholdValue">45%</strong>
+</label>
+<input id="giftImageThreshold" max="90" min="10" step="1" type="range" value="45"/>
+<small>
+      Aumente para remover tons mais escuros. Reduza se partes claras
+      do produto começarem a desaparecer.
+    </small>
+</div><div class="field" id="internalWhiteField">
+<label class="checkbox-row">
+<input checked="" id="giftRemoveInternalWhite" type="checkbox"/>
+    Remover também áreas brancas internas
+  </label>
+<small>
+    Remove fundos brancos presos dentro do contorno do produto.
+    Desmarque caso o próprio produto tenha uma área branca que precise
+    permanecer.
+  </small>
+</div><div class="field" id="imageScaleField">
+<label for="giftImageScale">
+    Tamanho da imagem no card:
+    <strong id="giftImageScaleValue">85%</strong>
+</label>
+<input id="giftImageScale" max="160" min="35" step="1" type="range" value="85"/>
+<div aria-hidden="true" class="image-scale-legend">
+<span>Menor</span>
+<span>Preencher o card</span>
+</div>
+<small>O tamanho escolhido será usado nesta prévia e também na lista pública, inclusive no celular. A imagem permanece limitada à área do card.</small>
+</div>
+<div class="field full">
+<div class="notice info" id="imageProcessingMessage">
+      Escolha uma imagem para visualizar o resultado.
+    </div>
+</div>
+<div class="field full">
+<div class="image-preview-grid">
+<figure class="image-preview-panel">
+<figcaption>Imagem original</figcaption>
+<div class="image-preview-surface original-surface">
+<img alt="Prévia da imagem original" id="giftOriginalPreview"/>
+<span class="image-preview-empty" id="originalPreviewEmpty">
+            Nenhuma imagem
+          </span>
+</div>
+</figure>
+<figure class="image-preview-panel">
+<figcaption>Resultado no card</figcaption>
+<div class="image-preview-surface processed-surface image-mode-fit" id="processedPreviewSurface">
+<img alt="Prévia da imagem processada" id="giftImagePreview"/>
+<span class="image-preview-empty" id="processedPreviewEmpty">
+            Nenhuma imagem
+          </span>
+</div>
+</figure>
+</div>
+<div class="image-editor-actions">
+<button class="btn btn-ghost" id="restoreOriginalImageButton" type="button">
+        Restaurar original
+      </button>
+<small id="imageSourceStatus">
+        Nenhuma imagem selecionada.
+      </small>
+</div>
+</div>
+<div class="field">
+<label class="checkbox-row">
+<input checked="" id="giftActive" type="checkbox"/>
+      Cadastro ativo
+    </label>
+<label class="checkbox-row">
+<input checked="" id="giftVisible" type="checkbox"/>
+      Visível no site público
+    </label>
+</div>
+</div><div class="notice hidden" id="giftFormMessage" style="margin-top:16px"></div><div class="actions"><button class="btn btn-primary">Salvar presente</button><button class="btn btn-ghost" data-close-modal="" type="button">Cancelar</button></div></form></div></div>
 </main></div><div class="toast hidden" id="toast"></div>
-<script src="assets/js/pages/presentes.js" type="module"></script></body></html>
+<script src="assets/js/pages/presentes.js?v=2.6.9" type="module"></script></body></html>

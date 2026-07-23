@@ -1,7 +1,51 @@
 <!doctype html>
 <!DOCTYPE html>
 
-<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Entrega — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><link href="assets/css/admin.css" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/></head>
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Entrega — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><script id="admin-menu-session-bootstrap">
+(function () {
+  try {
+    var user = JSON.parse(
+      sessionStorage.getItem("adminShellUser") || "null"
+    );
+    var access = JSON.parse(
+      sessionStorage.getItem("adminShellAccess") || "null"
+    );
+
+    if (!user || !access || access.active !== true) return;
+
+    var userEmail = String(user.email || "").trim().toLowerCase();
+    var accessEmail = String(access.email || "").trim().toLowerCase();
+
+    /*
+     * Cache antigo sem e-mail não é usado. Depois de uma autenticação
+     * com a versão 2.6.5, o cache já estará vinculado à conta correta.
+     */
+    if (!userEmail || !accessEmail || userEmail !== accessEmail) return;
+
+    var root = document.documentElement;
+    root.classList.add("admin-menu-session-ready");
+
+    if (access.role === "master") {
+      root.classList.add("admin-menu-master");
+      return;
+    }
+
+    var permissions = access.permissions || {};
+
+    Object.keys(permissions).forEach(function (permission) {
+      if (permissions[permission] === true) {
+        root.classList.add("admin-perm-" + permission);
+      }
+    });
+  } catch (error) {
+    sessionStorage.removeItem("adminShellAccess");
+  }
+})();
+</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/></head>
 <body data-page="entrega">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
@@ -23,4 +67,4 @@
 <header class="admin-topbar"><div class="topbar-left"><button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button">☰</button><div><p class="eyebrow">Administração</p><h1>Entrega</h1></div></div><div class="user-chip"><img alt="" id="userPhoto"/><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
 <section class="admin-form-card"><h2>Endereço para entrega dos presentes</h2><p class="section-description">Exibido apenas durante o fluxo de compra, conforme a configuração pública.</p><form id="deliveryForm"><div class="form-grid"><div class="field"><label>Destinatário</label><input id="deliveryRecipient"/></div><div class="field"><label>Telefone</label><input id="deliveryPhone"/></div><div class="field"><label>CEP</label><input id="deliveryZip"/></div><div class="field"><label>Rua</label><input id="deliveryStreet"/></div><div class="field"><label>Número</label><input id="deliveryNumber"/></div><div class="field"><label>Complemento</label><input id="deliveryComplement"/></div><div class="field"><label>Bairro</label><input id="deliveryNeighborhood"/></div><div class="field"><label>Cidade</label><input id="deliveryCity"/></div><div class="field"><label>Estado</label><input id="deliveryState" maxlength="2"/></div><div class="field full"><label>Ponto de referência</label><input id="deliveryReference"/></div><div class="field full"><label class="checkbox-row"><input id="deliveryActive" type="checkbox"/>Endereço ativo</label></div></div><div class="actions"><button class="btn btn-primary">Salvar endereço</button></div></form></section>
 </main></div><div class="toast hidden" id="toast"></div>
-<script src="assets/js/pages/entrega.js" type="module"></script></body></html>
+<script src="assets/js/pages/entrega.js?v=2.6.5" type="module"></script></body></html>

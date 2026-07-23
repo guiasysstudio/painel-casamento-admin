@@ -1,26 +1,234 @@
 <!doctype html>
 <!DOCTYPE html>
 
-<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Administradores — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><link href="assets/css/admin.css" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/></head>
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/>
+<title>Administradores — Painel ADM</title>
+<link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/>
+<script id="admin-menu-session-bootstrap">
+(function () {
+  try {
+    var user = JSON.parse(
+      sessionStorage.getItem("adminShellUser") || "null"
+    );
+    var access = JSON.parse(
+      sessionStorage.getItem("adminShellAccess") || "null"
+    );
+
+    if (!user || !access || access.active !== true) return;
+
+    var userEmail = String(user.email || "").trim().toLowerCase();
+    var accessEmail = String(access.email || "").trim().toLowerCase();
+
+    /*
+     * Cache antigo sem e-mail não é usado. Depois de uma autenticação
+     * com a versão 2.6.5, o cache já estará vinculado à conta correta.
+     */
+    if (!userEmail || !accessEmail || userEmail !== accessEmail) return;
+
+    var root = document.documentElement;
+    root.classList.add("admin-menu-session-ready");
+
+    if (access.role === "master") {
+      root.classList.add("admin-menu-master");
+      return;
+    }
+
+    var permissions = access.permissions || {};
+
+    Object.keys(permissions).forEach(function (permission) {
+      if (permissions[permission] === true) {
+        root.classList.add("admin-perm-" + permission);
+      }
+    });
+  } catch (error) {
+    sessionStorage.removeItem("adminShellAccess");
+  }
+})();
+</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/>
+<link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/>
+<link href="assets/css/administradores.css?v=2.6.2" rel="stylesheet"/>
+</head>
 <body data-page="administradores">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
-<a class="admin-brand" href="index.html"><img alt="" src="assets/img/monograma.svg"/><span>Painel ADM</span></a>
-<nav class="admin-nav"><a data-nav-page="dashboard" href="index.html"><span class="nav-icon">⌂</span>Visão geral</a>
-<a data-nav-page="confirmacoes" href="confirmacoes.html"><span class="nav-icon">✓</span>Confirmações</a>
-<a data-nav-page="presentes" href="presentes.html"><span class="nav-icon">🎁</span>Presentes</a>
-<a data-nav-page="reservas" href="reservas.html"><span class="nav-icon">⌛</span>Reservas</a>
-<a data-nav-page="pix" href="pix.html"><span class="nav-icon">R$</span>PIX</a>
-<a data-nav-page="pagina-inicial" href="pagina-inicial.html"><span class="nav-icon">✦</span>Página inicial</a>
-<a data-nav-page="entrega" href="entrega.html"><span class="nav-icon">⌖</span>Entrega</a>
-<a data-nav-page="administradores" href="administradores.html"><span class="nav-icon">👤</span>Administradores</a>
-<a data-nav-page="dominio" href="dominio.html"><span class="nav-icon">🌐</span>Domínio</a>
-<a data-nav-page="exportacoes" href="exportacoes.html"><span class="nav-icon">⇩</span>Exportações</a>
-<a data-nav-page="logs" href="logs.html"><span class="nav-icon">☷</span>Logs e backup</a></nav>
-<div class="sidebar-footer"><button class="btn btn-ghost" id="logoutButton" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)">Sair</button></div>
+<a class="admin-brand" href="index.html">
+<img alt="" src="assets/img/monograma.svg"/>
+<span>Painel ADM</span>
+</a>
+<nav class="admin-nav">
+<a data-nav-page="dashboard" href="index.html">
+<span class="nav-icon">⌂</span>Visão geral
+        </a>
+<a data-nav-page="confirmacoes" href="confirmacoes.html">
+<span class="nav-icon">✓</span>Confirmações
+        </a>
+<a data-nav-page="presentes" href="presentes.html">
+<span class="nav-icon">🎁</span>Presentes
+        </a>
+<a data-nav-page="reservas" href="reservas.html">
+<span class="nav-icon">⌛</span>Reservas
+        </a>
+<a data-nav-page="pix" href="pix.html">
+<span class="nav-icon">R$</span>PIX
+        </a>
+<a data-nav-page="pagina-inicial" href="pagina-inicial.html">
+<span class="nav-icon">✦</span>Página inicial
+        </a>
+<a data-nav-page="entrega" href="entrega.html">
+<span class="nav-icon">⌖</span>Entrega
+        </a>
+<a data-nav-page="administradores" href="administradores.html">
+<span class="nav-icon">👤</span>Administradores
+        </a>
+<a data-nav-page="dominio" href="dominio.html">
+<span class="nav-icon">🌐</span>Domínio
+        </a>
+<a data-nav-page="exportacoes" href="exportacoes.html">
+<span class="nav-icon">⇩</span>Exportações
+        </a>
+<a data-nav-page="logs" href="logs.html">
+<span class="nav-icon">☷</span>Logs e backup
+        </a>
+</nav>
+<div class="sidebar-footer">
+<button class="btn btn-ghost" id="logoutButton" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)">
+          Sair
+        </button>
+</div>
 </aside>
-<main class="admin-main"><div aria-live="polite" class="page-loader" id="pageLoader" role="status"><span aria-hidden="true" class="page-loader-spinner"></span><span id="pageLoaderText">Carregando página...</span></div>
-<header class="admin-topbar"><div class="topbar-left"><button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button">☰</button><div><p class="eyebrow">Administração</p><h1>Administradores</h1></div></div><div class="user-chip"><img alt="" id="userPhoto"/><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
-<section class="admin-form-card"><h2>Cadastrar administrador</h2><form id="adminForm"><div class="form-grid"><div class="field"><label>E-mail Google</label><input id="adminEmail" required="" type="email"/></div><div class="field"><label>Nome</label><input id="adminName" required=""/></div><div class="field"><label>Perfil</label><select id="adminRole"><option value="admin">Administrador</option><option value="master">Master</option></select></div><div class="field full"><span class="field-label">Permissões</span><div class="permission-grid" id="permissionGrid"></div></div></div><div class="actions"><button class="btn btn-primary">Cadastrar administrador</button></div></form></section><section class="page-card" style="margin-top:22px"><div class="section-head"><h2>Administradores cadastrados</h2><button class="btn btn-secondary" id="reloadButton">Atualizar</button></div><div class="admin-table-wrap" id="tableArea"></div></section>
-</main></div><div class="toast hidden" id="toast"></div>
-<script src="assets/js/pages/administradores.js" type="module"></script></body></html>
+<main class="admin-main">
+<div aria-live="polite" class="page-loader" id="pageLoader" role="status">
+<span aria-hidden="true" class="page-loader-spinner"></span>
+<span id="pageLoaderText">Carregando página...</span>
+</div>
+<header class="admin-topbar">
+<div class="topbar-left">
+<button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button">
+            ☰
+          </button>
+<div>
+<p class="eyebrow">Administração</p>
+<h1>Administradores</h1>
+</div>
+</div>
+<div class="user-chip">
+<img alt="" id="userPhoto"/>
+<div>
+<strong id="userName"></strong>
+<small id="userEmail"></small>
+</div>
+</div>
+</header>
+<section class="admin-form-card">
+<h2>Cadastrar administrador</h2>
+<p class="section-description">
+          Cadastre uma conta Google e escolha quais módulos ela poderá acessar.
+        </p>
+<form id="adminForm">
+<div class="form-grid">
+<div class="field">
+<label for="adminEmail">Gmail ou e-mail Google</label>
+<input autocomplete="email" id="adminEmail" required="" type="email"/>
+</div>
+<div class="field">
+<label for="adminName">Nome</label>
+<input autocomplete="name" id="adminName" minlength="2" required="" type="text"/>
+</div>
+<div class="field">
+<label for="adminRole">Perfil</label>
+<select id="adminRole">
+<option value="admin">Administrador</option>
+<option value="master">Master</option>
+</select>
+</div>
+<div class="field full">
+<span class="field-label">Permissões</span>
+<div class="permission-grid" id="permissionGrid"></div>
+</div>
+</div>
+<div class="notice hidden" id="adminFormMessage"></div>
+<div class="actions">
+<button class="btn btn-primary" type="submit">
+              Cadastrar administrador
+            </button>
+</div>
+</form>
+</section>
+<section class="page-card" style="margin-top:22px">
+<div class="section-head">
+<div>
+<h2>Administradores cadastrados</h2>
+<p class="section-description">
+              Edite dados e permissões, desative temporariamente ou exclua o acesso.
+            </p>
+</div>
+<button class="btn btn-secondary" id="reloadButton" type="button">
+            Atualizar
+          </button>
+</div>
+<div class="admin-table-wrap" id="tableArea"></div>
+</section>
+</main>
+</div>
+<div aria-labelledby="editAdminTitle" aria-modal="true" class="modal hidden" id="editAdminModal" role="dialog">
+<div class="modal-card large">
+<div class="modal-header">
+<div>
+<p class="eyebrow">Editar acesso</p>
+<h2 id="editAdminTitle">Editar administrador</h2>
+</div>
+<button aria-label="Fechar" class="modal-close" data-close-edit="" type="button">
+          ✕
+        </button>
+</div>
+<form id="editAdminForm">
+<input id="editOriginalEmail" type="hidden"/>
+<div class="form-grid">
+<div class="field">
+<label for="editAdminEmail">Gmail ou e-mail Google</label>
+<input autocomplete="email" id="editAdminEmail" required="" type="email"/>
+<small>
+              Ao alterar o e-mail, o acesso será transferido para a nova conta.
+            </small>
+</div>
+<div class="field">
+<label for="editAdminName">Nome</label>
+<input autocomplete="name" id="editAdminName" minlength="2" required="" type="text"/>
+</div>
+<div class="field">
+<label for="editAdminRole">Perfil</label>
+<select id="editAdminRole">
+<option value="admin">Administrador</option>
+<option value="master">Master</option>
+</select>
+</div>
+<label class="checkbox-row edit-active-row">
+<input id="editAdminActive" type="checkbox"/>
+            Administrador ativo
+          </label>
+<div class="field full">
+<span class="field-label">Permissões</span>
+<div class="permission-grid" id="editPermissionGrid"></div>
+</div>
+</div>
+<div class="notice hidden" id="editAdminMessage"></div>
+<div class="actions edit-modal-actions">
+<button class="btn btn-secondary" data-close-edit="" type="button">
+            Cancelar
+          </button>
+<button class="btn btn-primary" id="saveAdminButton" type="submit">
+            Salvar alterações
+          </button>
+</div>
+</form>
+</div>
+</div>
+<div class="toast hidden" id="toast"></div>
+<script src="assets/js/pages/administradores.js?v=2.6.5" type="module"></script>
+</body>
+</html>
