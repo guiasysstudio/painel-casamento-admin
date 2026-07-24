@@ -15,6 +15,8 @@ import {
   doc,
   getDoc,
   setDoc,
+  deleteDoc,
+  where,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
@@ -849,12 +851,21 @@ async function load() {
                   <td>${gift.visivelPublico ? "Sim" : "Não"}</td>
 
                   <td>
-                    <button
-                      class="btn btn-small btn-secondary"
-                      data-edit="${documentSnapshot.id}"
-                    >
-                      Editar
-                    </button>
+                    <div class="table-actions">
+                      <button
+                        class="btn btn-small btn-secondary"
+                        data-edit="${documentSnapshot.id}"
+                      >
+                        Editar
+                      </button>
+
+                      <button
+                        class="btn btn-small btn-danger"
+                        data-delete="${documentSnapshot.id}"
+                      >
+                        Excluir
+                      </button>
+                    </div>
                   </td>
                 </tr>
               `;
@@ -870,6 +881,12 @@ async function load() {
         edit(button.dataset.edit);
       });
     });
+
+    area.querySelectorAll("[data-delete]").forEach(button => {
+      button.addEventListener("click", () => {
+        removeGift(button.dataset.delete);
+      });
+    });
   } catch (error) {
     area.innerHTML = `
       <div class="notice danger">
@@ -879,6 +896,76 @@ async function load() {
   }
 }
 
+async function removeGift(id) {
+  try {
+    const giftRef = doc(db, "presentes", id);
+    const giftSnapshot = await getDoc(giftRef);
+
+    if (!giftSnapshot.exists()) {
+      throw new Error("O presente não foi encontrado.");
+    }
+
+    const gift = giftSnapshot.data();
+    const giftName = gift.nome || "este presente";
+
+    const hasActiveReservation =
+      Boolean(gift.reservationId) ||
+      ["reservado", "compra_informada"].includes(
+        gift.purchaseStatus
+      );
+
+    if (hasActiveReservation) {
+      throw new Error(
+        "Este presente possui uma reserva ativa. " +
+        "Libere ou conclua a reserva antes de excluí-lo."
+      );
+    }
+
+    /*
+     * Evita excluir um produto ligado a um PIX que ainda precisa
+     * ser processado ou que já foi confirmado.
+     */
+    const pixSnapshot = await getDocs(
+      query(
+        collection(db, "pixInformados"),
+        where("giftId", "==", id)
+      )
+    );
+
+    const linkedPix = pixSnapshot.docs.filter(snapshot => {
+      const status = snapshot.data().status;
+
+      return [
+        "aguardando_confirmacao",
+        "confirmado"
+      ].includes(status);
+    });
+
+    if (linkedPix.length) {
+      throw new Error(
+        "Este presente possui PIX aguardando confirmação ou já confirmado. " +
+        "Resolva esses registros na página PIX antes de excluir o presente."
+      );
+    }
+
+    const accepted = confirm(
+      `Excluir permanentemente o presente “${giftName}”?` +
+      "\n\nEsta ação não poderá ser desfeita."
+    );
+
+    if (!accepted) return;
+
+    await deleteDoc(giftRef);
+
+    toast("Presente excluído");
+    await load();
+  } catch (error) {
+    alert(
+      error.message ||
+      "Não foi possível excluir o presente."
+    );
+  }
+}
 function close() {
   $("giftModal").classList.add("hidden");
   document.body.classList.remove("modal-open");

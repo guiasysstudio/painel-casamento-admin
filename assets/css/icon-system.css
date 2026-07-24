@@ -70,6 +70,7 @@
 .icon-menu { --icon-url: url("../icons/icon-menu.svg"); }
 .icon-money { --icon-url: url("../icons/icon-money.svg"); }
 .icon-pix { --icon-url: url("../icons/icon-pix.svg"); }
+.icon-public-site { --icon-url: url("../icons/icon-public-site.svg"); }
 .icon-qrcode { --icon-url: url("../icons/icon-qrcode.svg"); }
 .icon-refresh { --icon-url: url("../icons/icon-refresh.svg"); }
 .icon-reject { --icon-url: url("../icons/icon-reject.svg"); }
@@ -267,4 +268,30 @@
   .page-loader-spinner {
     animation-duration: 1.8s !important;
   }
+}
+
+/* BOTÃO DE ACESSO AO SITE PÚBLICO — 2.8.1 */
+
+.sidebar-footer {
+  display: grid;
+  gap: 9px;
+}
+
+.sidebar-site-button {
+  width: 100%;
+  color: var(--dark) !important;
+  border-color: var(--sand) !important;
+  background: var(--sand) !important;
+}
+
+.sidebar-site-button:hover,
+.sidebar-site-button:focus-visible {
+  color: var(--dark) !important;
+  border-color: var(--ivory) !important;
+  background: var(--ivory) !important;
+}
+
+.sidebar-site-button .ui-icon {
+  --icon-size: 20px;
+  color: var(--dark) !important;
 }
