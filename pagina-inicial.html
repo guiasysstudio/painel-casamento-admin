@@ -9,6 +9,8 @@
 
 <!DOCTYPE html>
 
+<!DOCTYPE html>
+
 <html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Página inicial — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><script id="admin-menu-session-bootstrap">
 (function () {
   try {
@@ -49,7 +51,7 @@
     sessionStorage.removeItem("adminShellAccess");
   }
 })();
-</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.1" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script></head>
+</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.2" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script><script src="assets/js/site-button.js?v=2.8.2" type="module"></script></head>
 <body data-page="pagina-inicial">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
@@ -65,7 +67,7 @@
 <a data-nav-page="dominio" href="dominio.html"><span aria-hidden="true" class="nav-icon ui-icon icon-domain"></span>Domínio</a>
 <a data-nav-page="exportacoes" href="exportacoes.html"><span aria-hidden="true" class="nav-icon ui-icon icon-export"></span>Exportações</a>
 <a data-nav-page="logs" href="logs.html"><span aria-hidden="true" class="nav-icon ui-icon icon-logs"></span>Logs e backup</a></nav>
-<div class="sidebar-footer"><a aria-label="Abrir site público" class="btn sidebar-site-button" href="../site-casamento-publico/index.html" rel="noopener noreferrer" target="_blank" title="Abrir site público">
+<div class="sidebar-footer"><a aria-disabled="true" aria-label="Botão Site sem endereço configurado" class="btn sidebar-site-button is-disabled" data-site-button="true" href="#" title="Configure o endereço do botão Site na página Domínio">
 <span aria-hidden="true" class="ui-icon icon-public-site"></span>
 <span>Site</span>
 </a><button class="btn btn-ghost" id="logoutButton" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)"><span aria-hidden="true" class="ui-icon icon-logout"></span>Sair</button></div>

@@ -9,6 +9,10 @@
 
 <!DOCTYPE html>
 
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
 <html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Domínio — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><script id="admin-menu-session-bootstrap">
 (function () {
   try {
@@ -49,7 +53,7 @@
     sessionStorage.removeItem("adminShellAccess");
   }
 })();
-</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.1" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script></head>
+</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.2" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script><script src="assets/js/site-button.js?v=2.8.2" type="module"></script></head>
 <body data-page="dominio">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
@@ -65,13 +69,60 @@
 <a data-nav-page="dominio" href="dominio.html"><span aria-hidden="true" class="nav-icon ui-icon icon-domain"></span>Domínio</a>
 <a data-nav-page="exportacoes" href="exportacoes.html"><span aria-hidden="true" class="nav-icon ui-icon icon-export"></span>Exportações</a>
 <a data-nav-page="logs" href="logs.html"><span aria-hidden="true" class="nav-icon ui-icon icon-logs"></span>Logs e backup</a></nav>
-<div class="sidebar-footer"><a aria-label="Abrir site público" class="btn sidebar-site-button" href="../site-casamento-publico/index.html" rel="noopener noreferrer" target="_blank" title="Abrir site público">
+<div class="sidebar-footer"><a aria-disabled="true" aria-label="Botão Site sem endereço configurado" class="btn sidebar-site-button is-disabled" data-site-button="true" href="#" title="Configure o endereço do botão Site na página Domínio">
 <span aria-hidden="true" class="ui-icon icon-public-site"></span>
 <span>Site</span>
 </a><button class="btn btn-ghost" id="logoutButton" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)"><span aria-hidden="true" class="ui-icon icon-logout"></span>Sair</button></div>
 </aside>
 <main class="admin-main"><div aria-live="polite" class="page-loader" id="pageLoader" role="status"><span aria-hidden="true" class="page-loader-spinner loading-icon-sequence"></span><span id="pageLoaderText">Carregando página...</span></div>
 <header class="admin-topbar"><div class="topbar-left"><button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button"><span aria-hidden="true" class="ui-icon icon-menu"></span></button><div><p class="eyebrow">Administração</p><h1>Domínio</h1></div></div><div class="user-chip"><img alt="" id="userPhoto"/><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
-<section class="admin-form-card"><h2>Domínio e links</h2><form id="domainForm"><div class="form-grid"><div class="field full"><label>Domínio oficial do site público</label><input id="publicDomain" placeholder="https://exemplo.com.br"/></div><div class="field full"><label>Subdomínio do painel ADM</label><input id="adminDomain" placeholder="https://adm.exemplo.com.br"/></div></div><div class="actions"><button class="btn btn-primary"><span aria-hidden="true" class="ui-icon icon-save"></span>Salvar domínio</button></div></form><p class="notice warning">Este cadastro organiza os links no sistema. A configuração de DNS e GitHub Pages continuará sendo feita no provedor do domínio e nos repositórios.</p></section>
+<section class="admin-form-card"><h2>Domínio e links</h2><form id="domainForm"><div class="form-grid"><div class="field full"><label>Domínio oficial do site público</label><input id="publicDomain" placeholder="https://exemplo.com.br"/></div><div class="field full"><label>Subdomínio do painel ADM</label><input id="adminDomain" placeholder="https://adm.exemplo.com.br"/></div></div><div class="actions"><button class="btn btn-primary"><span aria-hidden="true" class="ui-icon icon-save"></span>Salvar domínio</button></div></form><p class="notice warning">Este cadastro organiza os links no sistema. A configuração de DNS e GitHub Pages continuará sendo feita no provedor do domínio e nos repositórios.</p></section><section class="admin-form-card site-button-config-card" id="site-button-config">
+<div class="section-head">
+<div>
+<h2>
+<span aria-hidden="true" class="ui-icon icon-public-site"></span>
+        Botão Site do painel
+      </h2>
+<p class="section-description">
+        Configure o domínio ou link que será aberto pelo botão
+        Site localizado acima de Sair.
+      </p>
+</div>
+</div>
+<form id="siteButtonForm">
+<div class="form-grid">
+<div class="field full">
+<label for="siteButtonUrl">
+          Link do site público
+        </label>
+<input id="siteButtonUrl" inputmode="url" placeholder="https://seudominio.com.br" required=""/>
+<small>
+          Pode informar somente o domínio. Quando necessário,
+          o sistema acrescentará https:// automaticamente.
+        </small>
+</div>
+</div>
+<div class="actions">
+<button class="btn btn-primary" id="saveSiteButtonUrl" type="submit">
+<span aria-hidden="true" class="ui-icon icon-save"></span>
+        Salvar link do botão
+      </button>
+<button class="btn btn-secondary" id="usePublicDomainButton" type="button">
+<span aria-hidden="true" class="ui-icon icon-domain"></span>
+        Usar domínio público
+      </button>
+<button class="btn btn-secondary" id="testSiteButtonUrl" type="button">
+<span aria-hidden="true" class="ui-icon icon-public-site"></span>
+        Testar link
+      </button>
+</div>
+</form>
+<div class="site-button-link-preview">
+<strong>Link configurado atualmente:</strong>
+<a class="current-site-button-link" href="#" id="currentSiteButtonLink" rel="noopener noreferrer" target="_blank">
+      Nenhum link configurado
+    </a>
+</div>
+</section>
 </main></div><div class="toast hidden" id="toast"></div>
-<script src="assets/js/pages/dominio.js?v=2.6.5" type="module"></script></body></html>
+<script src="assets/js/pages/dominio.js?v=2.8.2" type="module"></script></body></html>

@@ -295,3 +295,57 @@
   --icon-size: 20px;
   color: var(--dark) !important;
 }
+
+/* CONFIGURAÇÃO DO BOTÃO SITE — 2.8.2 */
+
+.sidebar-site-button.is-disabled,
+.sidebar-site-button[aria-disabled="true"] {
+  opacity: .58;
+  cursor: not-allowed;
+  filter: grayscale(.2);
+  transform: none !important;
+}
+
+.site-button-config-card {
+  margin-top: 20px;
+}
+
+.site-button-config-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.site-button-config-card h2 .ui-icon {
+  --icon-size: 28px;
+  color: var(--terracotta);
+}
+
+.site-button-config-card .field small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.site-button-link-preview {
+  display: grid;
+  gap: 7px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--ivory);
+}
+
+.current-site-button-link {
+  width: fit-content;
+  max-width: 100%;
+  color: var(--primary);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.current-site-button-link[aria-disabled="true"] {
+  color: var(--muted);
+  pointer-events: none;
+  text-decoration: none;
+}
