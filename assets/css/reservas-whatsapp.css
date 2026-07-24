@@ -1,0 +1,65 @@
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-width: 235px;
+}
+
+.btn-whatsapp {
+  color: #fff !important;
+  border-color: #1fa855 !important;
+  background: #25d366 !important;
+  text-decoration: none !important;
+}
+
+.btn-whatsapp:hover,
+.btn-whatsapp:focus-visible {
+  border-color: #178843 !important;
+  background: #1fa855 !important;
+}
+
+.btn-whatsapp::before { content: none !important; }
+
+@media (max-width: 720px) {
+  .table-actions {
+    min-width: 190px;
+  }
+
+  .table-actions .btn {
+    flex: 1 1 100%;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* WHATSAPP SOMENTE APÓS CONFIRMAÇÃO — 2.7.5 */
+
+.btn-whatsapp::before { content: none !important; }
+
+.btn-icon-only {
+  width: 38px !important;
+  min-width: 38px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  flex: 0 0 38px !important;
+  padding: 5px !important;
+  border-radius: 9px !important;
+}
+
+.btn-icon-only img {
+  width: 21px;
+  height: 21px;
+  display: block;
+  object-fit: contain;
+}
+
+@media (max-width: 720px) {
+  .table-actions .btn-icon-only {
+    width: 42px !important;
+    min-width: 42px !important;
+    height: 38px !important;
+    flex: 0 0 42px !important;
+  }
+}

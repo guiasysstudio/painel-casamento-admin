@@ -5,6 +5,8 @@
 
 <!DOCTYPE html>
 
+<!DOCTYPE html>
+
 <html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Domínio — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><script id="admin-menu-session-bootstrap">
 (function () {
   try {
@@ -45,26 +47,26 @@
     sessionStorage.removeItem("adminShellAccess");
   }
 })();
-</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/></head>
+</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.0" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script></head>
 <body data-page="dominio">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
 <a class="admin-brand" href="index.html"><img alt="" src="assets/img/monograma.svg"/><span>Painel ADM</span></a>
-<nav class="admin-nav"><a data-nav-page="dashboard" href="index.html"><span class="nav-icon">⌂</span>Visão geral</a>
-<a data-nav-page="confirmacoes" href="confirmacoes.html"><span class="nav-icon">✓</span>Confirmações</a>
-<a data-nav-page="presentes" href="presentes.html"><span class="nav-icon">🎁</span>Presentes</a>
-<a data-nav-page="reservas" href="reservas.html"><span class="nav-icon">⌛</span>Reservas</a>
-<a data-nav-page="pix" href="pix.html"><span class="nav-icon">R$</span>PIX</a>
-<a data-nav-page="pagina-inicial" href="pagina-inicial.html"><span class="nav-icon">✦</span>Página inicial</a>
-<a data-nav-page="entrega" href="entrega.html"><span class="nav-icon">⌖</span>Entrega</a>
-<a data-nav-page="administradores" href="administradores.html"><span class="nav-icon">👤</span>Administradores</a>
-<a data-nav-page="dominio" href="dominio.html"><span class="nav-icon">🌐</span>Domínio</a>
-<a data-nav-page="exportacoes" href="exportacoes.html"><span class="nav-icon">⇩</span>Exportações</a>
-<a data-nav-page="logs" href="logs.html"><span class="nav-icon">☷</span>Logs e backup</a></nav>
-<div class="sidebar-footer"><button class="btn btn-ghost" id="logoutButton" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)">Sair</button></div>
+<nav class="admin-nav"><a data-nav-page="dashboard" href="index.html"><span aria-hidden="true" class="nav-icon ui-icon icon-dashboard"></span>Visão geral</a>
+<a data-nav-page="confirmacoes" href="confirmacoes.html"><span aria-hidden="true" class="nav-icon ui-icon icon-confirmations"></span>Confirmações</a>
+<a data-nav-page="presentes" href="presentes.html"><span aria-hidden="true" class="nav-icon ui-icon icon-gifts"></span>Presentes</a>
+<a data-nav-page="reservas" href="reservas.html"><span aria-hidden="true" class="nav-icon ui-icon icon-reservations"></span>Reservas</a>
+<a data-nav-page="pix" href="pix.html"><span aria-hidden="true" class="nav-icon ui-icon icon-pix"></span>PIX</a>
+<a data-nav-page="pagina-inicial" href="pagina-inicial.html"><span aria-hidden="true" class="nav-icon ui-icon icon-home-edit"></span>Página inicial</a>
+<a data-nav-page="entrega" href="entrega.html"><span aria-hidden="true" class="nav-icon ui-icon icon-delivery"></span>Entrega</a>
+<a data-nav-page="administradores" href="administradores.html"><span aria-hidden="true" class="nav-icon ui-icon icon-admins"></span>Administradores</a>
+<a data-nav-page="dominio" href="dominio.html"><span aria-hidden="true" class="nav-icon ui-icon icon-domain"></span>Domínio</a>
+<a data-nav-page="exportacoes" href="exportacoes.html"><span aria-hidden="true" class="nav-icon ui-icon icon-export"></span>Exportações</a>
+<a data-nav-page="logs" href="logs.html"><span aria-hidden="true" class="nav-icon ui-icon icon-logs"></span>Logs e backup</a></nav>
+<div class="sidebar-footer"><button class="btn btn-ghost" id="logoutButton" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)"><span aria-hidden="true" class="ui-icon icon-logout"></span>Sair</button></div>
 </aside>
-<main class="admin-main"><div aria-live="polite" class="page-loader" id="pageLoader" role="status"><span aria-hidden="true" class="page-loader-spinner"></span><span id="pageLoaderText">Carregando página...</span></div>
-<header class="admin-topbar"><div class="topbar-left"><button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button">☰</button><div><p class="eyebrow">Administração</p><h1>Domínio</h1></div></div><div class="user-chip"><img alt="" id="userPhoto"/><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
-<section class="admin-form-card"><h2>Domínio e links</h2><form id="domainForm"><div class="form-grid"><div class="field full"><label>Domínio oficial do site público</label><input id="publicDomain" placeholder="https://exemplo.com.br"/></div><div class="field full"><label>Subdomínio do painel ADM</label><input id="adminDomain" placeholder="https://adm.exemplo.com.br"/></div></div><div class="actions"><button class="btn btn-primary">Salvar domínio</button></div></form><p class="notice warning">Este cadastro organiza os links no sistema. A configuração de DNS e GitHub Pages continuará sendo feita no provedor do domínio e nos repositórios.</p></section>
+<main class="admin-main"><div aria-live="polite" class="page-loader" id="pageLoader" role="status"><span aria-hidden="true" class="page-loader-spinner loading-icon-sequence"></span><span id="pageLoaderText">Carregando página...</span></div>
+<header class="admin-topbar"><div class="topbar-left"><button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button"><span aria-hidden="true" class="ui-icon icon-menu"></span></button><div><p class="eyebrow">Administração</p><h1>Domínio</h1></div></div><div class="user-chip"><img alt="" id="userPhoto"/><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
+<section class="admin-form-card"><h2>Domínio e links</h2><form id="domainForm"><div class="form-grid"><div class="field full"><label>Domínio oficial do site público</label><input id="publicDomain" placeholder="https://exemplo.com.br"/></div><div class="field full"><label>Subdomínio do painel ADM</label><input id="adminDomain" placeholder="https://adm.exemplo.com.br"/></div></div><div class="actions"><button class="btn btn-primary"><span aria-hidden="true" class="ui-icon icon-save"></span>Salvar domínio</button></div></form><p class="notice warning">Este cadastro organiza os links no sistema. A configuração de DNS e GitHub Pages continuará sendo feita no provedor do domínio e nos repositórios.</p></section>
 </main></div><div class="toast hidden" id="toast"></div>
 <script src="assets/js/pages/dominio.js?v=2.6.5" type="module"></script></body></html>

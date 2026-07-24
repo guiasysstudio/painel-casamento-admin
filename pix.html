@@ -5,6 +5,12 @@
 
 <!DOCTYPE html>
 
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
 <html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>PIX — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><script id="admin-menu-session-bootstrap">
 (function () {
   try {
@@ -45,26 +51,150 @@
     sessionStorage.removeItem("adminShellAccess");
   }
 })();
-</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/></head>
+</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/><link href="assets/css/pix-admin.css?v=2.7.2" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.0" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script></head>
 <body data-page="pix">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
 <a class="admin-brand" href="index.html"><img alt="" src="assets/img/monograma.svg"/><span>Painel ADM</span></a>
-<nav class="admin-nav"><a data-nav-page="dashboard" href="index.html"><span class="nav-icon">⌂</span>Visão geral</a>
-<a data-nav-page="confirmacoes" href="confirmacoes.html"><span class="nav-icon">✓</span>Confirmações</a>
-<a data-nav-page="presentes" href="presentes.html"><span class="nav-icon">🎁</span>Presentes</a>
-<a data-nav-page="reservas" href="reservas.html"><span class="nav-icon">⌛</span>Reservas</a>
-<a data-nav-page="pix" href="pix.html"><span class="nav-icon">R$</span>PIX</a>
-<a data-nav-page="pagina-inicial" href="pagina-inicial.html"><span class="nav-icon">✦</span>Página inicial</a>
-<a data-nav-page="entrega" href="entrega.html"><span class="nav-icon">⌖</span>Entrega</a>
-<a data-nav-page="administradores" href="administradores.html"><span class="nav-icon">👤</span>Administradores</a>
-<a data-nav-page="dominio" href="dominio.html"><span class="nav-icon">🌐</span>Domínio</a>
-<a data-nav-page="exportacoes" href="exportacoes.html"><span class="nav-icon">⇩</span>Exportações</a>
-<a data-nav-page="logs" href="logs.html"><span class="nav-icon">☷</span>Logs e backup</a></nav>
-<div class="sidebar-footer"><button class="btn btn-ghost" id="logoutButton" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)">Sair</button></div>
+<nav class="admin-nav"><a data-nav-page="dashboard" href="index.html"><span aria-hidden="true" class="nav-icon ui-icon icon-dashboard"></span>Visão geral</a>
+<a data-nav-page="confirmacoes" href="confirmacoes.html"><span aria-hidden="true" class="nav-icon ui-icon icon-confirmations"></span>Confirmações</a>
+<a data-nav-page="presentes" href="presentes.html"><span aria-hidden="true" class="nav-icon ui-icon icon-gifts"></span>Presentes</a>
+<a data-nav-page="reservas" href="reservas.html"><span aria-hidden="true" class="nav-icon ui-icon icon-reservations"></span>Reservas</a>
+<a data-nav-page="pix" href="pix.html"><span aria-hidden="true" class="nav-icon ui-icon icon-pix"></span>PIX</a>
+<a data-nav-page="pagina-inicial" href="pagina-inicial.html"><span aria-hidden="true" class="nav-icon ui-icon icon-home-edit"></span>Página inicial</a>
+<a data-nav-page="entrega" href="entrega.html"><span aria-hidden="true" class="nav-icon ui-icon icon-delivery"></span>Entrega</a>
+<a data-nav-page="administradores" href="administradores.html"><span aria-hidden="true" class="nav-icon ui-icon icon-admins"></span>Administradores</a>
+<a data-nav-page="dominio" href="dominio.html"><span aria-hidden="true" class="nav-icon ui-icon icon-domain"></span>Domínio</a>
+<a data-nav-page="exportacoes" href="exportacoes.html"><span aria-hidden="true" class="nav-icon ui-icon icon-export"></span>Exportações</a>
+<a data-nav-page="logs" href="logs.html"><span aria-hidden="true" class="nav-icon ui-icon icon-logs"></span>Logs e backup</a></nav>
+<div class="sidebar-footer"><button class="btn btn-ghost" id="logoutButton" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)"><span aria-hidden="true" class="ui-icon icon-logout"></span>Sair</button></div>
 </aside>
-<main class="admin-main"><div aria-live="polite" class="page-loader" id="pageLoader" role="status"><span aria-hidden="true" class="page-loader-spinner"></span><span id="pageLoaderText">Carregando página...</span></div>
-<header class="admin-topbar"><div class="topbar-left"><button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button">☰</button><div><p class="eyebrow">Administração</p><h1>PIX</h1></div></div><div class="user-chip"><img alt="" id="userPhoto"/><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
-<section class="page-card"><div class="section-head"><div><h2>PIX informados</h2><p class="section-description">Confirme manualmente os pagamentos informados pelos convidados.</p></div><button class="btn btn-secondary" id="reloadButton">Atualizar</button></div><div class="admin-table-wrap" id="tableArea"></div></section><section class="admin-form-card" style="margin-top:22px"><h2>Configuração do PIX</h2><form id="pixConfigForm"><div class="form-grid"><div class="field"><label>Tipo da chave</label><select id="pixKeyType"><option value="aleatoria">Aleatória</option><option value="telefone">Telefone</option><option value="email">E-mail</option><option value="cpf">CPF</option><option value="cnpj">CNPJ</option></select></div><div class="field"><label>Chave PIX</label><input id="pixKey" required=""/></div><div class="field"><label>Nome do titular</label><input id="pixHolderName" maxlength="25" required=""/></div><div class="field"><label>Cidade do titular</label><input id="pixCity" maxlength="15" required=""/></div><div class="field full"><label>Descrição</label><input id="pixDescription" value="PRESENTE DE CASAMENTO"/></div><div class="field full"><label class="checkbox-row"><input id="pixActive" type="checkbox"/>PIX ativo no site público</label></div></div><div class="actions"><button class="btn btn-primary">Salvar PIX</button></div></form></section>
-</main></div><div class="toast hidden" id="toast"></div>
-<script src="assets/js/pages/pix.js?v=2.6.5" type="module"></script></body></html>
+<main class="admin-main"><div aria-live="polite" class="page-loader" id="pageLoader" role="status"><span aria-hidden="true" class="page-loader-spinner loading-icon-sequence"></span><span id="pageLoaderText">Carregando página...</span></div>
+<header class="admin-topbar"><div class="topbar-left"><button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button"><span aria-hidden="true" class="ui-icon icon-menu"></span></button><div><p class="eyebrow">Administração</p><h1>PIX</h1></div></div><div class="user-chip"><img alt="" id="userPhoto"/><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
+<section class="pix-stat-grid">
+<article class="dashboard-card">
+<span aria-hidden="true" class="dashboard-icon ui-icon icon-pix"></span>
+<small>Aguardando confirmação</small>
+<strong id="pixPendingCount">0</strong>
+<span id="pixPendingValue">R$ 0,00</span>
+</article>
+<article class="dashboard-card">
+<span aria-hidden="true" class="dashboard-icon ui-icon icon-check"></span>
+<small>PIX confirmados</small>
+<strong id="pixConfirmedCount">0</strong>
+<span id="pixConfirmedValue">R$ 0,00</span>
+</article>
+<article class="dashboard-card">
+<span aria-hidden="true" class="dashboard-icon ui-icon icon-money"></span>
+<small>Presente em dinheiro</small>
+<strong id="pixCashCount">0</strong>
+<span id="pixCashValue">R$ 0,00</span>
+</article>
+<article class="dashboard-card">
+<span aria-hidden="true" class="dashboard-icon ui-icon icon-reject"></span>
+<small>Recusados</small>
+<strong id="pixRejectedCount">0</strong>
+<span id="pixRejectedValue">R$ 0,00</span>
+</article>
+</section><section class="page-card">
+<div class="section-head">
+<div>
+<h2>PIX informados</h2>
+<p class="section-description">
+        Confira o recebimento no aplicativo do banco antes de confirmar.
+      </p>
+</div>
+<div class="actions pix-page-actions">
+<span class="status warn" id="pixConfigStatus">
+    Não configurado
+  </span>
+<button class="btn btn-secondary" id="openPixConfigButton" type="button"><span aria-hidden="true" class="ui-icon icon-settings"></span>
+    Configuração PIX
+  </button>
+<button class="btn btn-secondary" id="reloadButton" type="button"><span aria-hidden="true" class="ui-icon icon-refresh"></span>
+    Atualizar
+  </button>
+</div></div>
+<div class="pix-admin-filters">
+<input id="pixSearch" placeholder="Pesquisar convidado, WhatsApp ou presente..." type="search"/>
+<select id="pixStatusFilter">
+<option value="">Todos os status</option>
+<option value="aguardando_confirmacao">Aguardando</option>
+<option value="confirmado">Confirmados</option>
+<option value="recusado">Recusados</option>
+</select>
+</div>
+<div class="notice hidden" id="pixTableMessage"></div>
+<div class="admin-table-wrap" id="tableArea"></div>
+</section></main></div><div aria-labelledby="pixConfigModalTitle" aria-modal="true" class="modal hidden" id="pixConfigModal" role="dialog">
+<div class="modal-card pix-config-modal-card">
+<div class="modal-header">
+<div>
+<p class="eyebrow">Configuração</p>
+<h2 id="pixConfigModalTitle">Configuração do PIX</h2>
+</div>
+<button aria-label="Fechar" class="modal-close" data-close-pix-config="" type="button"><span aria-hidden="true" class="ui-icon icon-close"></span></button>
+</div>
+<div class="pix-config-modal-description">
+      Estes dados serão usados para gerar o QR Code e o PIX Copia e Cola.
+    </div>
+<form id="pixConfigForm">
+<div class="pix-config-layout">
+<div class="form-grid">
+<div class="field">
+<label for="pixKeyType">Tipo da chave</label>
+<select id="pixKeyType">
+<option value="aleatoria">Aleatória</option>
+<option value="telefone">Telefone</option>
+<option value="email">E-mail</option>
+<option value="cpf">CPF</option>
+<option value="cnpj">CNPJ</option>
+</select>
+</div>
+<div class="field">
+<label for="pixKey">Chave PIX</label>
+<input autocomplete="off" id="pixKey" required=""/>
+<small id="pixKeyHelp">
+            Cole a chave aleatória exatamente como foi fornecida pelo banco.
+          </small>
+</div>
+<div class="field">
+<label for="pixHolderName">Nome do titular</label>
+<input id="pixHolderName" maxlength="25" placeholder="Ex.: MISLAINE MESSIAS" required=""/>
+</div>
+<div class="field">
+<label for="pixCity">Cidade do titular</label>
+<input id="pixCity" maxlength="15" placeholder="Ex.: ROLIM DE MOURA" required=""/>
+</div>
+<div class="field full">
+<label for="pixDescription">Descrição</label>
+<input id="pixDescription" maxlength="72" value="PRESENTE DE CASAMENTO"/>
+</div>
+<div class="field full">
+<label class="checkbox-row">
+<input id="pixActive" type="checkbox"/>
+            PIX ativo no site público
+          </label>
+</div>
+</div>
+<aside class="pix-config-preview">
+<p class="eyebrow">Teste da configuração</p>
+<h3>QR Code de R$ 1,00</h3>
+<canvas id="pixConfigQrCanvas"></canvas>
+<div class="notice info" id="pixConfigPreviewText">
+          Preencha os dados para testar o QR Code.
+        </div>
+<button class="btn btn-secondary" id="testPixConfigButton" type="button"><span aria-hidden="true" class="ui-icon icon-qrcode"></span>
+          Testar configuração
+        </button>
+</aside>
+</div>
+<div class="notice hidden" id="pixConfigMessage"></div>
+<div class="actions">
+<button class="btn btn-primary" id="savePixConfigButton" type="submit"><span aria-hidden="true" class="ui-icon icon-save"></span>
+        Salvar configuração do PIX
+      </button>
+</div>
+</form></div>
+</div><div class="toast hidden" id="toast"></div>
+<script src="assets/js/pages/pix.js?v=2.7.2" type="module"></script></body></html>

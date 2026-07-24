@@ -1,0 +1,216 @@
+.pix-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.pix-stat-grid .dashboard-card {
+  min-width: 0;
+}
+
+.pix-stat-grid .dashboard-card strong {
+  display: block;
+  margin: 5px 0 2px;
+  font-size: 2rem;
+}
+
+.pix-stat-grid .dashboard-card > span:last-child {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.pix-admin-filters {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) 220px;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.pix-config-card {
+  margin-top: 22px;
+}
+
+.pix-config-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 22px;
+  align-items: start;
+}
+
+.pix-config-preview {
+  position: sticky;
+  top: 18px;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--ivory);
+  text-align: center;
+}
+
+.pix-config-preview h3 {
+  margin: 0;
+}
+
+.pix-config-preview canvas {
+  width: 230px;
+  height: 230px;
+  max-width: 100%;
+  padding: 7px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.pix-config-preview .notice {
+  width: 100%;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.pix-destination {
+  display: grid;
+  gap: 3px;
+}
+
+.pix-destination small,
+.pix-date small,
+.pix-txid {
+  color: var(--muted);
+}
+
+.pix-txid {
+  display: block;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: Consolas, monospace;
+  font-size: .7rem;
+}
+
+.pix-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-width: 180px;
+}
+
+.pix-config-valid {
+  color: var(--success) !important;
+}
+
+@media (max-width: 1050px) {
+  .pix-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pix-config-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .pix-config-preview {
+    position: static;
+  }
+}
+
+@media (max-width: 680px) {
+  .pix-stat-grid,
+  .pix-admin-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .pix-config-preview canvas {
+    width: min(230px, 100%);
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .pix-status-actions {
+    min-width: 150px;
+  }
+}
+
+/* PIX 2.7.2 — AÇÕES E CONFIGURAÇÃO EM MODAL */
+
+.pix-page-actions {
+  margin: 0;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.pix-page-actions .status {
+  margin-right: 2px;
+}
+
+.pix-config-modal-card {
+  width: min(1040px, calc(100vw - 30px));
+  max-height: min(90vh, 920px);
+  overflow: auto;
+}
+
+.pix-config-modal-description {
+  margin: -4px 0 18px;
+  color: var(--muted);
+}
+
+.pix-config-modal-card #pixConfigForm {
+  margin: 0;
+}
+
+.pix-status-actions {
+  min-width: 260px;
+}
+
+.pix-status-actions .btn-danger {
+  border-color: rgba(145, 45, 35, .35);
+}
+
+.pix-status-actions .btn-unconfirm {
+  color: var(--warning);
+  border-color: rgba(162, 107, 34, .35);
+  background: rgba(162, 107, 34, .08);
+}
+
+.pix-status-actions .btn-unconfirm:hover {
+  color: #fff;
+  background: var(--warning);
+}
+
+.pix-action-note {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: .68rem;
+}
+
+@media (max-width: 760px) {
+  .pix-page-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .pix-page-actions .status,
+  .pix-page-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pix-config-modal-card {
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+  }
+
+  .pix-status-actions {
+    min-width: 190px;
+  }
+
+  .pix-status-actions .btn {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}

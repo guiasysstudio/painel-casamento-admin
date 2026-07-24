@@ -13,6 +13,8 @@
 
 <!DOCTYPE html>
 
+<!DOCTYPE html>
+
 <html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Presentes — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><script id="admin-menu-session-bootstrap">
 (function () {
   try {
@@ -53,28 +55,28 @@
     sessionStorage.removeItem("adminShellAccess");
   }
 })();
-</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/><link href="assets/css/presentes-imagens.css?v=2.6.8" rel="stylesheet"/></head>
+</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/><link href="assets/css/presentes-imagens.css?v=2.6.8" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.0" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script></head>
 <body data-page="presentes">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
 <a class="admin-brand" href="index.html"><img alt="" src="assets/img/monograma.svg"/><span>Painel ADM</span></a>
-<nav class="admin-nav"><a data-nav-page="dashboard" href="index.html"><span class="nav-icon">⌂</span>Visão geral</a>
-<a data-nav-page="confirmacoes" href="confirmacoes.html"><span class="nav-icon">✓</span>Confirmações</a>
-<a data-nav-page="presentes" href="presentes.html"><span class="nav-icon">🎁</span>Presentes</a>
-<a data-nav-page="reservas" href="reservas.html"><span class="nav-icon">⌛</span>Reservas</a>
-<a data-nav-page="pix" href="pix.html"><span class="nav-icon">R$</span>PIX</a>
-<a data-nav-page="pagina-inicial" href="pagina-inicial.html"><span class="nav-icon">✦</span>Página inicial</a>
-<a data-nav-page="entrega" href="entrega.html"><span class="nav-icon">⌖</span>Entrega</a>
-<a data-nav-page="administradores" href="administradores.html"><span class="nav-icon">👤</span>Administradores</a>
-<a data-nav-page="dominio" href="dominio.html"><span class="nav-icon">🌐</span>Domínio</a>
-<a data-nav-page="exportacoes" href="exportacoes.html"><span class="nav-icon">⇩</span>Exportações</a>
-<a data-nav-page="logs" href="logs.html"><span class="nav-icon">☷</span>Logs e backup</a></nav>
-<div class="sidebar-footer"><button class="btn btn-ghost" id="logoutButton" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)">Sair</button></div>
+<nav class="admin-nav"><a data-nav-page="dashboard" href="index.html"><span aria-hidden="true" class="nav-icon ui-icon icon-dashboard"></span>Visão geral</a>
+<a data-nav-page="confirmacoes" href="confirmacoes.html"><span aria-hidden="true" class="nav-icon ui-icon icon-confirmations"></span>Confirmações</a>
+<a data-nav-page="presentes" href="presentes.html"><span aria-hidden="true" class="nav-icon ui-icon icon-gifts"></span>Presentes</a>
+<a data-nav-page="reservas" href="reservas.html"><span aria-hidden="true" class="nav-icon ui-icon icon-reservations"></span>Reservas</a>
+<a data-nav-page="pix" href="pix.html"><span aria-hidden="true" class="nav-icon ui-icon icon-pix"></span>PIX</a>
+<a data-nav-page="pagina-inicial" href="pagina-inicial.html"><span aria-hidden="true" class="nav-icon ui-icon icon-home-edit"></span>Página inicial</a>
+<a data-nav-page="entrega" href="entrega.html"><span aria-hidden="true" class="nav-icon ui-icon icon-delivery"></span>Entrega</a>
+<a data-nav-page="administradores" href="administradores.html"><span aria-hidden="true" class="nav-icon ui-icon icon-admins"></span>Administradores</a>
+<a data-nav-page="dominio" href="dominio.html"><span aria-hidden="true" class="nav-icon ui-icon icon-domain"></span>Domínio</a>
+<a data-nav-page="exportacoes" href="exportacoes.html"><span aria-hidden="true" class="nav-icon ui-icon icon-export"></span>Exportações</a>
+<a data-nav-page="logs" href="logs.html"><span aria-hidden="true" class="nav-icon ui-icon icon-logs"></span>Logs e backup</a></nav>
+<div class="sidebar-footer"><button class="btn btn-ghost" id="logoutButton" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)"><span aria-hidden="true" class="ui-icon icon-logout"></span>Sair</button></div>
 </aside>
-<main class="admin-main"><div aria-live="polite" class="page-loader" id="pageLoader" role="status"><span aria-hidden="true" class="page-loader-spinner"></span><span id="pageLoaderText">Carregando página...</span></div>
-<header class="admin-topbar"><div class="topbar-left"><button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button">☰</button><div><p class="eyebrow">Administração</p><h1>Presentes</h1></div></div><div class="user-chip"><img alt="" id="userPhoto"/><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
-<section class="page-card"><div class="section-head"><div><h2>Cadastro de presentes</h2><p class="section-description">Edite produtos, valores, lojas, imagens e visibilidade.</p></div><div class="actions" style="margin:0"><button class="btn btn-secondary" id="reloadButton">Atualizar</button><button class="btn btn-primary" id="newGiftButton">Novo presente</button></div></div><div class="admin-table-wrap" id="tableArea"></div></section>
-<div class="modal hidden" id="giftModal"><div class="modal-card large"><div class="modal-header"><div><p class="eyebrow">Cadastro</p><h2 id="giftModalTitle">Presente</h2></div><button class="modal-close" data-close-modal="" type="button">✕</button></div><form id="giftForm"><input id="giftId" type="hidden"/><div class="form-grid">
+<main class="admin-main"><div aria-live="polite" class="page-loader" id="pageLoader" role="status"><span aria-hidden="true" class="page-loader-spinner loading-icon-sequence"></span><span id="pageLoaderText">Carregando página...</span></div>
+<header class="admin-topbar"><div class="topbar-left"><button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button"><span aria-hidden="true" class="ui-icon icon-menu"></span></button><div><p class="eyebrow">Administração</p><h1>Presentes</h1></div></div><div class="user-chip"><img alt="" id="userPhoto"/><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
+<section class="page-card"><div class="section-head"><div><h2>Cadastro de presentes</h2><p class="section-description">Edite produtos, valores, lojas, imagens e visibilidade.</p></div><div class="actions" style="margin:0"><button class="btn btn-secondary" id="reloadButton"><span aria-hidden="true" class="ui-icon icon-refresh"></span>Atualizar</button><button class="btn btn-primary" id="newGiftButton"><span aria-hidden="true" class="ui-icon icon-add"></span>Novo presente</button></div></div><div class="admin-table-wrap" id="tableArea"></div></section>
+<div class="modal hidden" id="giftModal"><div class="modal-card large"><div class="modal-header"><div><p class="eyebrow">Cadastro</p><h2 id="giftModalTitle">Presente</h2></div><button class="modal-close" data-close-modal="" type="button"><span aria-hidden="true" class="ui-icon icon-close"></span></button></div><form id="giftForm"><input id="giftId" type="hidden"/><div class="form-grid">
 <div class="field">
 <label for="giftName">Nome</label>
 <input id="giftName" required=""/>
@@ -108,7 +110,7 @@
 <div class="field">
 <label for="giftImageUrl">Link direto da imagem</label>
 <input id="giftImageUrl" placeholder="https://loja.com/imagem-do-produto.jpg" type="url"/>
-<button class="btn btn-secondary image-inline-button" id="processImageUrlButton" type="button">
+<button class="btn btn-secondary image-inline-button" id="processImageUrlButton" type="button"><span aria-hidden="true" class="ui-icon icon-link"></span>
           Carregar e testar link
         </button>
 </div>
@@ -191,7 +193,7 @@
 </figure>
 </div>
 <div class="image-editor-actions">
-<button class="btn btn-ghost" id="restoreOriginalImageButton" type="button">
+<button class="btn btn-ghost" id="restoreOriginalImageButton" type="button"><span aria-hidden="true" class="ui-icon icon-restore"></span>
         Restaurar original
       </button>
 <small id="imageSourceStatus">
@@ -209,6 +211,6 @@
       Visível no site público
     </label>
 </div>
-</div><div class="notice hidden" id="giftFormMessage" style="margin-top:16px"></div><div class="actions"><button class="btn btn-primary">Salvar presente</button><button class="btn btn-ghost" data-close-modal="" type="button">Cancelar</button></div></form></div></div>
+</div><div class="notice hidden" id="giftFormMessage" style="margin-top:16px"></div><div class="actions"><button class="btn btn-primary"><span aria-hidden="true" class="ui-icon icon-save"></span>Salvar presente</button><button class="btn btn-ghost" data-close-modal="" type="button"><span aria-hidden="true" class="ui-icon icon-close"></span>Cancelar</button></div></form></div></div>
 </main></div><div class="toast hidden" id="toast"></div>
 <script src="assets/js/pages/presentes.js?v=2.6.9" type="module"></script></body></html>

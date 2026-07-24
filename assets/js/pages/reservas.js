@@ -42,6 +42,54 @@ function deliveryLabel(value) {
       : "Não informado";
 }
 
+
+function whatsappNumber(value) {
+  const number = String(value || "").replace(/\D/g, "");
+
+  if (
+    (number.length === 12 || number.length === 13) &&
+    number.startsWith("55")
+  ) {
+    return number;
+  }
+
+  if (number.length === 10 || number.length === 11) {
+    return `55${number}`;
+  }
+
+  return "";
+}
+
+function whatsappMessage(reservation) {
+  const guestName =
+    String(reservation.guestName || "Olá").trim();
+
+  const giftName =
+    String(reservation.giftName || "presente").trim();
+
+  const firstName =
+    guestName.split(/\s+/).filter(Boolean)[0] || "Olá";
+
+  return (
+    `Olá, ${firstName}! ` +
+    `Muito obrigado pelo carinho e por escolher o presente ` +
+    `“${giftName}” para o nosso casamento. ` +
+    `Ficamos muito felizes com sua lembrança! ` +
+    `Com carinho, Mislaine e Emerson. 🤎`
+  );
+}
+
+function whatsappUrl(reservation) {
+  const number = whatsappNumber(reservation.whatsapp);
+
+  if (!number) return "";
+
+  return (
+    `https://wa.me/${number}` +
+    `?text=${encodeURIComponent(whatsappMessage(reservation))}`
+  );
+}
+
 async function load() {
   const area = $("tableArea");
   area.innerHTML = '<div class="loading">Carregando...</div>';
@@ -81,6 +129,9 @@ async function load() {
                 "expirada"
               ].includes(status);
 
+              const guestWhatsappUrl =
+                whatsappUrl(reservation);
+
               return `
                 <tr>
                   <td>
@@ -118,6 +169,24 @@ async function load() {
 
                   <td>
                     <div class="table-actions">
+                      ${
+                        status === "compra_confirmada" &&
+                        guestWhatsappUrl
+                          ? `
+                            <a
+                              class="btn btn-small btn-whatsapp btn-icon-only"
+                              href="${esc(guestWhatsappUrl)}"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Agradecer no WhatsApp para ${esc(reservation.guestName)}"
+                              aria-label="Agradecer no WhatsApp para ${esc(reservation.guestName)}"
+                            >
+                              <span class="ui-icon icon-whatsapp" aria-hidden="true"></span>
+                            </a>
+                          `
+                          : ""
+                      }
+
                       ${
                         canConfirm
                           ? `

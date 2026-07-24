@@ -3,6 +3,8 @@
 
 <!DOCTYPE html>
 
+<!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"/>
@@ -52,7 +54,7 @@
 </script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/>
 <link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/>
 <link href="assets/css/administradores.css?v=2.6.2" rel="stylesheet"/>
-</head>
+<link href="assets/css/icon-system.css?v=2.8.0" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script></head>
 <body data-page="administradores">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
@@ -62,55 +64,53 @@
 </a>
 <nav class="admin-nav">
 <a data-nav-page="dashboard" href="index.html">
-<span class="nav-icon">⌂</span>Visão geral
+<span aria-hidden="true" class="nav-icon ui-icon icon-dashboard"></span>Visão geral
         </a>
 <a data-nav-page="confirmacoes" href="confirmacoes.html">
-<span class="nav-icon">✓</span>Confirmações
+<span aria-hidden="true" class="nav-icon ui-icon icon-confirmations"></span>Confirmações
         </a>
 <a data-nav-page="presentes" href="presentes.html">
-<span class="nav-icon">🎁</span>Presentes
+<span aria-hidden="true" class="nav-icon ui-icon icon-gifts"></span>Presentes
         </a>
 <a data-nav-page="reservas" href="reservas.html">
-<span class="nav-icon">⌛</span>Reservas
+<span aria-hidden="true" class="nav-icon ui-icon icon-reservations"></span>Reservas
         </a>
 <a data-nav-page="pix" href="pix.html">
-<span class="nav-icon">R$</span>PIX
+<span aria-hidden="true" class="nav-icon ui-icon icon-pix"></span>PIX
         </a>
 <a data-nav-page="pagina-inicial" href="pagina-inicial.html">
-<span class="nav-icon">✦</span>Página inicial
+<span aria-hidden="true" class="nav-icon ui-icon icon-home-edit"></span>Página inicial
         </a>
 <a data-nav-page="entrega" href="entrega.html">
-<span class="nav-icon">⌖</span>Entrega
+<span aria-hidden="true" class="nav-icon ui-icon icon-delivery"></span>Entrega
         </a>
 <a data-nav-page="administradores" href="administradores.html">
-<span class="nav-icon">👤</span>Administradores
+<span aria-hidden="true" class="nav-icon ui-icon icon-admins"></span>Administradores
         </a>
 <a data-nav-page="dominio" href="dominio.html">
-<span class="nav-icon">🌐</span>Domínio
+<span aria-hidden="true" class="nav-icon ui-icon icon-domain"></span>Domínio
         </a>
 <a data-nav-page="exportacoes" href="exportacoes.html">
-<span class="nav-icon">⇩</span>Exportações
+<span aria-hidden="true" class="nav-icon ui-icon icon-export"></span>Exportações
         </a>
 <a data-nav-page="logs" href="logs.html">
-<span class="nav-icon">☷</span>Logs e backup
+<span aria-hidden="true" class="nav-icon ui-icon icon-logs"></span>Logs e backup
         </a>
 </nav>
 <div class="sidebar-footer">
-<button class="btn btn-ghost" id="logoutButton" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)">
+<button class="btn btn-ghost" id="logoutButton" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)"><span aria-hidden="true" class="ui-icon icon-logout"></span>
           Sair
         </button>
 </div>
 </aside>
 <main class="admin-main">
 <div aria-live="polite" class="page-loader" id="pageLoader" role="status">
-<span aria-hidden="true" class="page-loader-spinner"></span>
+<span aria-hidden="true" class="page-loader-spinner loading-icon-sequence"></span>
 <span id="pageLoaderText">Carregando página...</span>
 </div>
 <header class="admin-topbar">
 <div class="topbar-left">
-<button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button">
-            ☰
-          </button>
+<button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button"><span aria-hidden="true" class="ui-icon icon-menu"></span></button>
 <div>
 <p class="eyebrow">Administração</p>
 <h1>Administradores</h1>
@@ -153,7 +153,7 @@
 </div>
 <div class="notice hidden" id="adminFormMessage"></div>
 <div class="actions">
-<button class="btn btn-primary" type="submit">
+<button class="btn btn-primary" type="submit"><span aria-hidden="true" class="ui-icon icon-add"></span>
               Cadastrar administrador
             </button>
 </div>
@@ -167,7 +167,7 @@
               Edite dados e permissões, desative temporariamente ou exclua o acesso.
             </p>
 </div>
-<button class="btn btn-secondary" id="reloadButton" type="button">
+<button class="btn btn-secondary" id="reloadButton" type="button"><span aria-hidden="true" class="ui-icon icon-refresh"></span>
             Atualizar
           </button>
 </div>
@@ -182,9 +182,7 @@
 <p class="eyebrow">Editar acesso</p>
 <h2 id="editAdminTitle">Editar administrador</h2>
 </div>
-<button aria-label="Fechar" class="modal-close" data-close-edit="" type="button">
-          ✕
-        </button>
+<button aria-label="Fechar" class="modal-close" data-close-edit="" type="button"><span aria-hidden="true" class="ui-icon icon-close"></span></button>
 </div>
 <form id="editAdminForm">
 <input id="editOriginalEmail" type="hidden"/>
@@ -218,10 +216,10 @@
 </div>
 <div class="notice hidden" id="editAdminMessage"></div>
 <div class="actions edit-modal-actions">
-<button class="btn btn-secondary" data-close-edit="" type="button">
+<button class="btn btn-secondary" data-close-edit="" type="button"><span aria-hidden="true" class="ui-icon icon-close"></span>
             Cancelar
           </button>
-<button class="btn btn-primary" id="saveAdminButton" type="submit">
+<button class="btn btn-primary" id="saveAdminButton" type="submit"><span aria-hidden="true" class="ui-icon icon-save"></span>
             Salvar alterações
           </button>
 </div>
