@@ -64,6 +64,15 @@
 .icon-loading-5 { --icon-url: url("../icons/icon-loading-5.svg"); }
 .icon-loading-6 { --icon-url: url("../icons/icon-loading-6.svg"); }
 .icon-loading-7 { --icon-url: url("../icons/icon-loading-7.svg"); }
+.icon-loading-8 { --icon-url: url("../icons/icon-loading-8.svg"); }
+.icon-loading-9 { --icon-url: url("../icons/icon-loading-9.svg"); }
+.icon-loading-10 { --icon-url: url("../icons/icon-loading-10.svg"); }
+.icon-loading-11 { --icon-url: url("../icons/icon-loading-11.svg"); }
+.icon-loading-12 { --icon-url: url("../icons/icon-loading-12.svg"); }
+.icon-loading-13 { --icon-url: url("../icons/icon-loading-13.svg"); }
+.icon-loading-14 { --icon-url: url("../icons/icon-loading-14.svg"); }
+.icon-loading-15 { --icon-url: url("../icons/icon-loading-15.svg"); }
+.icon-loading-16 { --icon-url: url("../icons/icon-loading-16.svg"); }
 .icon-loading { --icon-url: url("../icons/icon-loading.svg"); }
 .icon-logout { --icon-url: url("../icons/icon-logout.svg"); }
 .icon-logs { --icon-url: url("../icons/icon-logs.svg"); }
@@ -108,38 +117,74 @@
   mask-repeat: no-repeat;
   -webkit-mask-size: contain;
   mask-size: contain;
-  animation: wedding-icon-loading .84s steps(1, end) infinite !important;
+  animation: wedding-icon-loading 1.28s steps(1, end) infinite;
 }
 
 
 @keyframes wedding-icon-loading {
-  0%, 13.9% {
+  0%, 6.249% {
     -webkit-mask-image: url("../icons/icon-loading-1.svg");
     mask-image: url("../icons/icon-loading-1.svg");
   }
-  14%, 27.9% {
+  6.25%, 12.499% {
     -webkit-mask-image: url("../icons/icon-loading-2.svg");
     mask-image: url("../icons/icon-loading-2.svg");
   }
-  28%, 41.9% {
+  12.5%, 18.749% {
     -webkit-mask-image: url("../icons/icon-loading-3.svg");
     mask-image: url("../icons/icon-loading-3.svg");
   }
-  42%, 56.9% {
+  18.75%, 24.999% {
     -webkit-mask-image: url("../icons/icon-loading-4.svg");
     mask-image: url("../icons/icon-loading-4.svg");
   }
-  57%, 70.9% {
+  25%, 31.249% {
     -webkit-mask-image: url("../icons/icon-loading-5.svg");
     mask-image: url("../icons/icon-loading-5.svg");
   }
-  71%, 84.9% {
+  31.25%, 37.499% {
     -webkit-mask-image: url("../icons/icon-loading-6.svg");
     mask-image: url("../icons/icon-loading-6.svg");
   }
-  85%, 99.9% {
+  37.5%, 43.749% {
     -webkit-mask-image: url("../icons/icon-loading-7.svg");
     mask-image: url("../icons/icon-loading-7.svg");
+  }
+  43.75%, 49.999% {
+    -webkit-mask-image: url("../icons/icon-loading-8.svg");
+    mask-image: url("../icons/icon-loading-8.svg");
+  }
+  50%, 56.249% {
+    -webkit-mask-image: url("../icons/icon-loading-9.svg");
+    mask-image: url("../icons/icon-loading-9.svg");
+  }
+  56.25%, 62.499% {
+    -webkit-mask-image: url("../icons/icon-loading-10.svg");
+    mask-image: url("../icons/icon-loading-10.svg");
+  }
+  62.5%, 68.749% {
+    -webkit-mask-image: url("../icons/icon-loading-11.svg");
+    mask-image: url("../icons/icon-loading-11.svg");
+  }
+  68.75%, 74.999% {
+    -webkit-mask-image: url("../icons/icon-loading-12.svg");
+    mask-image: url("../icons/icon-loading-12.svg");
+  }
+  75%, 81.249% {
+    -webkit-mask-image: url("../icons/icon-loading-13.svg");
+    mask-image: url("../icons/icon-loading-13.svg");
+  }
+  81.25%, 87.499% {
+    -webkit-mask-image: url("../icons/icon-loading-14.svg");
+    mask-image: url("../icons/icon-loading-14.svg");
+  }
+  87.5%, 93.749% {
+    -webkit-mask-image: url("../icons/icon-loading-15.svg");
+    mask-image: url("../icons/icon-loading-15.svg");
+  }
+  93.75%, 99.999% {
+    -webkit-mask-image: url("../icons/icon-loading-16.svg");
+    mask-image: url("../icons/icon-loading-16.svg");
   }
   100% {
     -webkit-mask-image: url("../icons/icon-loading-1.svg");

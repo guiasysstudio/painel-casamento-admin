@@ -85,6 +85,49 @@ function destinationLabel(entry) {
     : entry.giftName || "Produto";
 }
 
+function normalizeReceiptUploadUrl(value) {
+  const text = String(value || "").trim();
+
+  if (!text) return "";
+
+  let url;
+
+  try {
+    url = new URL(text);
+  } catch {
+    throw new Error(
+      "Informe uma URL válida para o Apps Script."
+    );
+  }
+
+  if (
+    url.protocol !== "https:" ||
+    url.hostname !== "script.google.com" ||
+    !/\/macros\/s\/[^/]+\/exec\/?$/.test(url.pathname)
+  ) {
+    throw new Error(
+      "A URL do Apps Script precisa terminar em /exec."
+    );
+  }
+
+  url.search = "";
+  url.hash = "";
+
+  return url.href;
+}
+
+function formatReceiptSize(bytes) {
+  const value = Number(bytes || 0);
+
+  if (!value) return "";
+
+  if (value < 1024 * 1024) {
+    return `${(value / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(value / (1024 * 1024)).toFixed(2)} MB`;
+}
+
 function filteredEntries() {
   const term = $("pixSearch").value
     .trim()
@@ -158,6 +201,7 @@ function renderTable() {
           <th>Convidado</th>
           <th>Destino</th>
           <th>Valor</th>
+          <th>Comprovante</th>
           <th>Status</th>
           <th>Ações</th>
         </tr>
@@ -198,6 +242,39 @@ function renderTable() {
               </td>
 
               <td><strong>${money(entry.value)}</strong></td>
+
+              <td>
+                ${
+                  entry.receiptFileUrl
+                    ? `
+                      <div class="pix-receipt-admin">
+                        <a
+                          class="btn btn-small btn-secondary"
+                          href="${esc(entry.receiptFileUrl)}"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Abrir comprovante no Google Drive"
+                        >
+                          Abrir comprovante
+                        </a>
+
+                        <small title="${esc(entry.receiptFileName || "")}">
+                          ${esc(entry.receiptFileName || "Arquivo enviado")}
+                          ${
+                            entry.receiptSize
+                              ? ` • ${esc(formatReceiptSize(entry.receiptSize))}`
+                              : ""
+                          }
+                        </small>
+                      </div>
+                    `
+                    : `
+                      <span class="status warn">
+                        Não enviado
+                      </span>
+                    `
+                }
+              </td>
 
               <td>
                 <span class="status ${statusClass(entry.status)}">
@@ -270,7 +347,7 @@ function renderTable() {
           `).join("") ||
           `
             <tr>
-              <td colspan="6">
+              <td colspan="7">
                 Nenhum PIX encontrado para os filtros selecionados.
               </td>
             </tr>
@@ -847,13 +924,32 @@ function closePixConfiguration() {
   document.body.classList.remove("modal-open");
 }
 function rawConfigFromForm() {
+  const receiptUploadEnabled =
+    $("pixReceiptUploadEnabled").checked;
+
+  const receiptUploadUrl =
+    normalizeReceiptUploadUrl(
+      $("pixReceiptUploadUrl").value
+    );
+
+  if (
+    receiptUploadEnabled &&
+    !receiptUploadUrl
+  ) {
+    throw new Error(
+      "Informe a URL do Apps Script para ativar os comprovantes."
+    );
+  }
+
   return {
     keyType: $("pixKeyType").value,
     key: $("pixKey").value,
     holderName: $("pixHolderName").value,
     city: $("pixCity").value,
     description: $("pixDescription").value,
-    active: $("pixActive").checked
+    active: $("pixActive").checked,
+    receiptUploadEnabled,
+    receiptUploadUrl
   };
 }
 
@@ -913,9 +1009,15 @@ function updateConfigurationStatus(configuration) {
 async function testConfiguration({
   showSuccess = true
 } = {}) {
-  const configuration = normalizePixConfig(
-    rawConfigFromForm()
-  );
+  const rawConfiguration = rawConfigFromForm();
+
+  const configuration = {
+    ...normalizePixConfig(rawConfiguration),
+    receiptUploadEnabled:
+      rawConfiguration.receiptUploadEnabled,
+    receiptUploadUrl:
+      rawConfiguration.receiptUploadUrl
+  };
 
   const payload = buildPixPayload({
     key: configuration.key,
@@ -986,6 +1088,12 @@ async function loadConfiguration() {
       "PRESENTE DE CASAMENTO";
     $("pixActive").checked =
       pixConfiguration.active === true;
+
+    $("pixReceiptUploadUrl").value =
+      pixConfiguration.receiptUploadUrl || "";
+
+    $("pixReceiptUploadEnabled").checked =
+      pixConfiguration.receiptUploadEnabled === true;
 
     updateKeyHelp();
     updateConfigurationStatus(pixConfiguration);

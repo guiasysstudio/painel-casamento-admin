@@ -55,7 +55,7 @@
     sessionStorage.removeItem("adminShellAccess");
   }
 })();
-</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/><link href="assets/css/pix-admin.css?v=2.7.2" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.2" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script><script src="assets/js/site-button.js?v=2.8.2" type="module"></script></head>
+</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/><link href="assets/css/pix-admin.css?v=2.8.3" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.7" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script><script src="assets/js/site-button.js?v=2.8.2" type="module"></script></head>
 <body data-page="pix">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
@@ -177,6 +177,44 @@
 <label for="pixDescription">Descrição</label>
 <input id="pixDescription" maxlength="72" value="PRESENTE DE CASAMENTO"/>
 </div>
+<div class="field full pix-receipt-config">
+  <div class="pix-receipt-config-heading">
+    <span
+      class="ui-icon icon-upload"
+      aria-hidden="true"
+    ></span>
+
+    <div>
+      <strong>Comprovantes no Google Drive</strong>
+      <small>
+        Cole a URL da implantação do Apps Script responsável
+        por salvar os arquivos na pasta privada.
+      </small>
+    </div>
+  </div>
+
+  <label for="pixReceiptUploadUrl">
+    URL do aplicativo da Web
+  </label>
+
+  <input
+    id="pixReceiptUploadUrl"
+    inputmode="url"
+    placeholder="https://script.google.com/macros/s/.../exec"
+  >
+
+  <small>
+    Use a URL de implantação terminada em /exec.
+  </small>
+
+  <label class="checkbox-row">
+    <input
+      id="pixReceiptUploadEnabled"
+      type="checkbox"
+    >
+    Exigir e enviar comprovante pelo site público
+  </label>
+</div>
 <div class="field full">
 <label class="checkbox-row">
 <input id="pixActive" type="checkbox"/>
@@ -204,4 +242,4 @@
 </div>
 </form></div>
 </div><div class="toast hidden" id="toast"></div>
-<script src="assets/js/pages/pix.js?v=2.7.2" type="module"></script></body></html>
+<script src="assets/js/pages/pix.js?v=2.8.3" type="module"></script></body></html>

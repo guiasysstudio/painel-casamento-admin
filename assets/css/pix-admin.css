@@ -214,3 +214,60 @@
     width: 100%;
   }
 }
+
+
+/* COMPROVANTES PIX NO GOOGLE DRIVE — 2.8.3 */
+
+.pix-receipt-admin {
+  display: grid;
+  gap: 6px;
+  min-width: 170px;
+}
+
+.pix-receipt-admin .btn {
+  width: fit-content;
+}
+
+.pix-receipt-admin small {
+  display: block;
+  max-width: 230px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pix-receipt-config {
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(98, 51, 6, .18);
+  border-radius: 14px;
+  background: rgba(247, 242, 233, .7);
+}
+
+.pix-receipt-config-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.pix-receipt-config-heading .ui-icon {
+  --icon-size: 25px;
+  margin-top: 2px;
+  color: var(--terracotta);
+}
+
+.pix-receipt-config-heading div {
+  display: grid;
+  gap: 3px;
+}
+
+.pix-receipt-config-heading small,
+.pix-receipt-config > small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.pix-receipt-config .checkbox-row {
+  margin-top: 4px;
+}
