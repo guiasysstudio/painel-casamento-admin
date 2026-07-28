@@ -1,16 +1,4 @@
 <!doctype html>
-<!DOCTYPE html>
-
-<!DOCTYPE html>
-
-<!DOCTYPE html>
-
-<!DOCTYPE html>
-
-<!DOCTYPE html>
-
-<!DOCTYPE html>
-
 <html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Confirmações — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><script id="admin-menu-session-bootstrap">
 (function () {
   try {
@@ -51,8 +39,18 @@
     sessionStorage.removeItem("adminShellAccess");
   }
 })();
-</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.7" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script><script src="assets/js/site-button.js?v=2.8.2" type="module"></script></head>
-<body data-page="confirmacoes">
+</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.7" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script><script src="assets/js/site-button.js?v=2.8.2" type="module"></script><link href="assets/css/admin-mobile.css?v=2.9.2" rel="stylesheet"/><style id="admin-critical-layout-v292">
+@media (max-width:900px){
+ body.admin-layout-v292 .section-head{display:block!important;position:static!important;width:100%!important;margin:0 0 16px!important;padding:0!important}
+ body.admin-layout-v292 .section-head>div:not(.actions){display:block!important;position:static!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
+ body.admin-layout-v292 .section-head h2{display:block!important;position:static!important;width:100%!important;margin:0!important;padding:0!important;font-size:clamp(1.65rem,6vw,2.05rem)!important;line-height:1.18!important;white-space:normal!important;overflow-wrap:break-word!important}
+ body.admin-layout-v292 .section-head .section-description{display:block!important;position:static!important;width:100%!important;max-width:60ch!important;margin:8px 0 0!important;padding:0!important;font-size:.88rem!important;line-height:1.5!important;white-space:normal!important}
+ body.admin-layout-v292 .section-head>.actions,body.admin-layout-v292 .section-head>.btn{position:static!important;float:none!important;clear:both!important;width:100%!important;max-width:none!important;margin:14px 0 0!important}
+ body.admin-layout-v292 .section-head>.actions{display:grid!important;grid-template-columns:1fr!important;gap:9px!important}
+ body.admin-layout-v292 .section-head>.actions>*,body.admin-layout-v292 .section-head>.btn{width:100%!important;min-width:0!important;max-width:100%!important;margin:0!important;justify-content:center!important}
+}
+</style></head>
+<body data-page="confirmacoes" class="admin-layout-v292">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
 <a class="admin-brand" href="index.html"><img alt="" src="assets/img/monograma.svg"/><span>Painel ADM</span></a>
@@ -76,4 +74,4 @@
 <header class="admin-topbar"><div class="topbar-left"><button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button"><span aria-hidden="true" class="ui-icon icon-menu"></span></button><div><p class="eyebrow">Administração</p><h1>Confirmações</h1></div></div><div class="user-chip"><img alt="" id="userPhoto"/><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
 <section class="page-card"><div class="section-head"><div><h2>Lista de confirmações</h2><p class="section-description">Consulte famílias, adultos, crianças e cancelamentos.</p></div><button class="btn btn-secondary" id="reloadButton"><span aria-hidden="true" class="ui-icon icon-refresh"></span>Atualizar</button></div><div class="admin-table-wrap" id="tableArea"></div></section>
 </main></div><div class="toast hidden" id="toast"></div>
-<script src="assets/js/pages/confirmacoes.js?v=2.6.5" type="module"></script></body></html>
+<script src="assets/js/pages/confirmacoes.js?v=3.0.0" type="module"></script></body></html>

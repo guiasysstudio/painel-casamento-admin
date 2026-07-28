@@ -1,0 +1,371 @@
+/*
+ * CORREÇÃO GLOBAL DE RESPONSIVIDADE DO PAINEL ADM — 2.9.0
+ * Carregado depois dos demais estilos para padronizar todas as páginas.
+ */
+
+html,
+body {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.admin-layout,
+.admin-main,
+.admin-topbar,
+.topbar-left,
+.topbar-left > div,
+.page-card,
+.admin-form-card,
+.setup-card,
+.section-head,
+.section-head > div,
+.admin-table-wrap,
+.form-grid,
+.field,
+.actions {
+  min-width: 0;
+}
+
+.section-head h2,
+.admin-form-card h2,
+.admin-form-card h3,
+.modal-header h2 {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+.section-description {
+  max-width: 68ch;
+  overflow-wrap: break-word;
+}
+
+.section-head > .actions {
+  margin-top: 0;
+}
+
+.admin-table-wrap {
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 1020px) {
+  .admin-main {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .admin-topbar {
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .section-head {
+    align-items: flex-start;
+  }
+
+  .page-card,
+  .admin-form-card,
+  .setup-card {
+    width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-main {
+    width: 100%;
+    padding: 10px !important;
+  }
+
+  .admin-topbar {
+    display: grid !important;
+    grid-template-columns:
+      minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .topbar-left {
+    min-width: 0;
+    gap: 8px !important;
+  }
+
+  .topbar-left > div {
+    min-width: 0;
+  }
+
+  .admin-topbar h1 {
+    max-width: 100%;
+    margin: 0 !important;
+    overflow: hidden;
+    font-size:
+      clamp(1.45rem, 7.5vw, 1.9rem) !important;
+    line-height: 1 !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .admin-topbar .eyebrow {
+    margin-bottom: 2px !important;
+    font-size: .58rem !important;
+    letter-spacing: .11em !important;
+  }
+
+  .page-card,
+  .admin-form-card,
+  .setup-card {
+    padding: 14px !important;
+    border-radius: 17px !important;
+  }
+
+  /*
+   * Regra principal da correção:
+   * título/descrição primeiro e ações abaixo.
+   */
+  .section-head {
+    display: grid !important;
+    grid-template-columns:
+      minmax(0, 1fr) !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .section-head > div {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .section-head h2,
+  .admin-form-card h2,
+  .admin-form-card h3 {
+    max-width: 100%;
+    margin: 0 !important;
+    font-size:
+      clamp(1.5rem, 7.8vw, 1.95rem) !important;
+    line-height: 1.04 !important;
+  }
+
+  .section-description {
+    width: 100%;
+    max-width: 56ch;
+    margin: 5px 0 0 !important;
+    font-size: .84rem !important;
+    line-height: 1.42 !important;
+  }
+
+  .section-head > .actions {
+    display: grid !important;
+    grid-template-columns:
+      repeat(
+        auto-fit,
+        minmax(min(138px, 100%), 1fr)
+      ) !important;
+    width: 100%;
+    margin: 0 !important;
+    gap: 8px !important;
+  }
+
+  .section-head > .actions .btn,
+  .section-head > .btn {
+    width: 100% !important;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  /*
+   * A página PIX tem status e dois botões.
+   * No celular, cada ação ocupa sua própria linha.
+   */
+  .section-head .pix-page-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+  }
+
+  .pix-page-actions .status,
+  .pix-page-actions .btn {
+    width: 100% !important;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .pix-page-actions .status {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+  }
+
+  .actions,
+  .table-actions {
+    max-width: 100%;
+    gap: 7px !important;
+  }
+
+  .btn {
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .dashboard-grid,
+  .quick-grid,
+  .pix-stat-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .dashboard-card {
+    min-width: 0;
+    min-height: 102px;
+    padding: 12px !important;
+    border-radius: 15px !important;
+  }
+
+  .dashboard-card small,
+  .dashboard-card span {
+    min-width: 0;
+    font-size: .74rem !important;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+  }
+
+  .dashboard-card strong {
+    margin-top: 5px !important;
+    font-size: 1.9rem !important;
+  }
+
+  .form-grid,
+  .permission-grid,
+  .pix-admin-filters,
+  .pix-config-layout,
+  .image-source-grid,
+  .image-preview-grid {
+    grid-template-columns:
+      minmax(0, 1fr) !important;
+  }
+
+  .field,
+  .field.full,
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .admin-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    border-radius: 13px !important;
+  }
+
+  table {
+    min-width: 650px !important;
+  }
+
+  .modal {
+    padding: 8px !important;
+  }
+
+  .modal-card,
+  .modal-card.large,
+  .pix-config-modal-card {
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    padding: 15px !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-radius: 17px !important;
+  }
+
+  .modal-header {
+    align-items: flex-start;
+    gap: 10px !important;
+  }
+
+  .modal-header > div {
+    min-width: 0;
+  }
+
+  .modal-header h2 {
+    max-width: 100%;
+    font-size: 1.75rem !important;
+    line-height: 1.05 !important;
+    overflow-wrap: break-word;
+  }
+
+  .pix-config-modal-description {
+    margin-top: 0 !important;
+    font-size: .84rem;
+    line-height: 1.45;
+  }
+
+  .pix-config-preview {
+    position: static !important;
+  }
+
+  .pix-config-preview canvas {
+    width: min(230px, 100%) !important;
+    height: auto !important;
+  }
+
+  .image-editor-actions {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .image-editor-actions .btn {
+    width: 100% !important;
+  }
+
+  .site-button-link-preview,
+  .pix-receipt-config {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 420px) {
+  .section-head > .actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-grid,
+  .quick-grid,
+  .pix-stat-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .dashboard-card {
+    min-height: 96px;
+    padding: 10px !important;
+  }
+
+  .dashboard-card strong {
+    font-size: 1.72rem !important;
+  }
+
+  .dashboard-card small,
+  .dashboard-card span {
+    font-size: .69rem !important;
+  }
+}
+
+@media (max-width: 340px) {
+  .dashboard-grid,
+  .quick-grid,
+  .pix-stat-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-topbar h1 {
+    font-size: 1.42rem !important;
+  }
+}

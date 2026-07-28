@@ -20,6 +20,10 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
+import {
+  tryRecordAdminLog
+} from "../audit-log.js";
+
 const DEFAULT_IMAGE_MODE = "fit";
 const DEFAULT_THRESHOLD = 45;
 const DEFAULT_IMAGE_SCALE = 85;
@@ -957,6 +961,20 @@ async function removeGift(id) {
 
     await deleteDoc(giftRef);
 
+    await tryRecordAdminLog({
+      module: "presentes",
+      action: "excluido",
+      recordId: id,
+      summary:
+        `Presente “${giftName}” excluído.`,
+      details: {
+        name: giftName,
+        category: gift.categoria || "",
+        estimatedValue:
+          Number(gift.valorEstimado || 0)
+      }
+    });
+
     toast("Presente excluído");
     await load();
   } catch (error) {
@@ -1201,8 +1219,14 @@ bootstrapPage({
           await applyCurrentTreatment();
         }
 
+        const existingId =
+          $("giftId").value;
+
+        const isEditing =
+          Boolean(existingId);
+
         const id =
-          $("giftId").value ||
+          existingId ||
           `presente-${crypto.randomUUID()}`;
 
         const savedOriginalUrl =
@@ -1248,6 +1272,39 @@ bootstrapPage({
           },
           { merge: true }
         );
+
+        await tryRecordAdminLog({
+          module: "presentes",
+          action:
+            isEditing
+              ? "atualizado"
+              : "criado",
+          recordId: id,
+          summary:
+            `Presente “${$("giftName").value.trim()}” ${
+              isEditing
+                ? "atualizado"
+                : "cadastrado"
+            }.`,
+          details: {
+            name:
+              $("giftName").value.trim(),
+            category:
+              $("giftCategory").value.trim(),
+            estimatedValue:
+              Number($("giftValue").value),
+            active:
+              $("giftActive").checked,
+            visible:
+              $("giftVisible").checked,
+            imageMode:
+              effectiveImageMode,
+            imageScale:
+              normalizeImageScale(
+                $("giftImageScale").value
+              )
+          }
+        });
 
         toast("Presente salvo");
         close();

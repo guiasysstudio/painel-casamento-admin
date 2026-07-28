@@ -18,6 +18,10 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
+import {
+  tryRecordAdminLog
+} from "../audit-log.js";
+
 function showCurrentSiteButtonUrl(value) {
   const link = $("currentSiteButtonLink");
   let url = "";
@@ -105,6 +109,17 @@ async function saveDomains() {
     { merge: true }
   );
 
+  await tryRecordAdminLog({
+    module: "configuracoes",
+    action: "atualizado",
+    recordId: "configuracoes/dominio",
+    summary: "Domínios público e administrativo atualizados.",
+    details: {
+      publicDomain,
+      adminDomain
+    }
+  });
+
   toast("Domínios salvos");
 }
 
@@ -150,6 +165,16 @@ async function saveSiteButtonUrl() {
   $("siteButtonUrl").value = normalizedUrl;
   applySiteButtonUrl(normalizedUrl);
   showCurrentSiteButtonUrl(normalizedUrl);
+  await tryRecordAdminLog({
+    module: "configuracoes",
+    action: "atualizado",
+    recordId: "configuracoes/dominio",
+    summary: "Link do botão Site atualizado.",
+    details: {
+      siteButtonUrl: normalizedUrl
+    }
+  });
+
   toast("Link do botão Site salvo");
 }
 

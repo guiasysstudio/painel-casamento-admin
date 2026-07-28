@@ -30,6 +30,10 @@ import {
   renderQrToCanvas
 } from "../qr-local.js";
 
+import {
+  tryRecordAdminLog
+} from "../audit-log.js";
+
 let pixEntries = [];
 let pixConfiguration = null;
 
@@ -546,6 +550,22 @@ async function confirmPix(id) {
       }
     });
 
+    await tryRecordAdminLog({
+      module: "pix",
+      action: "pix_confirmado",
+      recordId: id,
+      summary:
+        `PIX de ${money(entry.value)} enviado por ${entry.guestName || "convidado"} confirmado.`,
+      details: {
+        guestName: entry.guestName || "",
+        giftId: entry.giftId || "",
+        giftName: entry.giftName || "",
+        value: Number(entry.value || 0),
+        destinationType:
+          entry.destinationType || ""
+      }
+    });
+
     toast("PIX confirmado");
     await loadEntries();
   } catch (error) {
@@ -736,6 +756,20 @@ async function unconfirmPix(id) {
       );
     });
 
+    await tryRecordAdminLog({
+      module: "pix",
+      action: "pix_desconfirmado",
+      recordId: id,
+      summary:
+        `Confirmação do PIX de ${money(entry.value)} enviada por ${entry.guestName || "convidado"} desfeita.`,
+      details: {
+        guestName: entry.guestName || "",
+        giftId: entry.giftId || "",
+        giftName: entry.giftName || "",
+        value: Number(entry.value || 0)
+      }
+    });
+
     toast("Confirmação do PIX desfeita");
     await loadEntries();
   } catch (error) {
@@ -800,6 +834,21 @@ async function deletePixEntry(id) {
       }
     });
 
+    await tryRecordAdminLog({
+      module: "pix",
+      action: "excluido",
+      recordId: id,
+      summary:
+        `PIX de ${money(entry.value)} enviado por ${entry.guestName || "convidado"} excluído.`,
+      details: {
+        previousStatus: entry.status || "",
+        guestName: entry.guestName || "",
+        giftId: entry.giftId || "",
+        giftName: entry.giftName || "",
+        value: Number(entry.value || 0)
+      }
+    });
+
     toast("PIX excluído");
     await loadEntries();
   } catch (error) {
@@ -857,6 +906,20 @@ async function rejectPix(id) {
       }
     });
 
+    await tryRecordAdminLog({
+      module: "pix",
+      action: "pix_recusado",
+      recordId: id,
+      summary:
+        `PIX de ${money(entry.value)} enviado por ${entry.guestName || "convidado"} recusado.`,
+      details: {
+        guestName: entry.guestName || "",
+        giftId: entry.giftId || "",
+        giftName: entry.giftName || "",
+        value: Number(entry.value || 0)
+      }
+    });
+
     toast("PIX recusado");
     await loadEntries();
   } catch (error) {
@@ -867,6 +930,10 @@ async function rejectPix(id) {
   }
 }
 async function reopenPix(id) {
+  const entry = pixEntries.find(item => item.id === id);
+
+  if (!entry) return;
+
   try {
     await runTransaction(db, async transaction => {
       const pixRef = doc(db, "pixInformados", id);
@@ -901,6 +968,20 @@ async function reopenPix(id) {
           data,
           { merge: true }
         );
+      }
+    });
+
+    await tryRecordAdminLog({
+      module: "pix",
+      action: "pix_reaberto",
+      recordId: id,
+      summary:
+        `PIX de ${money(entry.value)} enviado por ${entry.guestName || "convidado"} voltou para aguardando.`,
+      details: {
+        guestName: entry.guestName || "",
+        giftId: entry.giftId || "",
+        giftName: entry.giftName || "",
+        value: Number(entry.value || 0)
       }
     });
 
@@ -1225,6 +1306,27 @@ bootstrapPage({
 
           pixConfiguration = configuration;
           updateConfigurationStatus(configuration);
+
+          await tryRecordAdminLog({
+            module: "configuracoes",
+            action: "atualizado",
+            recordId:
+              "configuracoes/pixPublico",
+            summary:
+              "Configuração pública do PIX atualizada.",
+            details: {
+              keyType:
+                configuration.keyType,
+              holderName:
+                configuration.holderName,
+              city:
+                configuration.city,
+              active:
+                configuration.active,
+              receiptUploadEnabled:
+                configuration.receiptUploadEnabled
+            }
+          });
 
           message.className = "notice success";
           message.textContent =

@@ -23,6 +23,10 @@ import {
   writeBatch
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
+import {
+  tryRecordAdminLog
+} from "../audit-log.js";
+
 const PERMISSION_LABELS = {
   confirmacoes: "Confirmações",
   presentes: "Presentes",
@@ -310,6 +314,22 @@ async function load() {
             }
           );
 
+          await tryRecordAdminLog({
+            module: "administradores",
+            action: "status_alterado",
+            recordId: email,
+            summary:
+              `Administrador ${email} ${
+                currentlyActive
+                  ? "desativado"
+                  : "ativado"
+              }.`,
+            details: {
+              previousActive: currentlyActive,
+              newActive: !currentlyActive
+            }
+          });
+
           toast(
             currentlyActive
               ? "Administrador desativado"
@@ -338,6 +358,20 @@ async function load() {
 
         try {
           await deleteDoc(doc(db, "administradores", email));
+
+          await tryRecordAdminLog({
+            module: "administradores",
+            action: "excluido",
+            recordId: email,
+            summary:
+              `Administrador ${admin?.name || email} excluído.`,
+            details: {
+              email,
+              name: admin?.name || "",
+              role: admin?.role || ""
+            }
+          });
+
           toast("Administrador excluído");
           await load();
         } catch (error) {
@@ -395,6 +429,20 @@ async function createAdministrator(event) {
     renderPermissionGrid("permissionGrid", {
       role: "admin",
       permissions: null
+    });
+
+    await tryRecordAdminLog({
+      module: "administradores",
+      action: "criado",
+      recordId: email,
+      summary:
+        `Administrador ${name} cadastrado.`,
+      details: {
+        email,
+        name,
+        role,
+        permissions
+      }
     });
 
     toast("Administrador cadastrado");
@@ -484,6 +532,21 @@ async function saveAdministrator(event) {
         }
       );
     }
+
+    await tryRecordAdminLog({
+      module: "administradores",
+      action: "atualizado",
+      recordId: newEmail,
+      summary:
+        `Administrador ${name} atualizado.`,
+      details: {
+        originalEmail,
+        newEmail,
+        role,
+        active,
+        permissions
+      }
+    });
 
     closeEditModal();
     toast("Administrador atualizado");

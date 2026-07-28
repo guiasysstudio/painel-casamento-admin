@@ -16,6 +16,10 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
+import {
+  tryRecordAdminLog
+} from "../audit-log.js";
+
 function setCardVisible(valueId, visible) {
   const value = $(valueId);
   const card = value?.closest(".dashboard-card");
@@ -190,6 +194,16 @@ bootstrapPage({
 
         try {
           const total = await initializeFirebaseProject();
+
+          await tryRecordAdminLog({
+            module: "sistema",
+            action: "inicializacao",
+            recordId: "firebase",
+            summary: `Projeto inicializado com ${total} presentes.`,
+            details: {
+              importedGifts: total
+            }
+          });
 
           message.className = "notice success";
           message.textContent =

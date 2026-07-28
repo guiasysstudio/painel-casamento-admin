@@ -9,6 +9,10 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
+import {
+  tryRecordAdminLog
+} from "../audit-log.js";
+
 function effectiveStatus(reservation) {
   const expiration = reservation.expiresAt?.toDate?.();
 
@@ -250,6 +254,8 @@ async function confirmPurchase(id) {
   }
 
   try {
+    let loggedReservation = null;
+
     await runTransaction(db, async transaction => {
       const reservationRef = doc(db, "reservas", id);
       const reservationSnapshot =
@@ -260,6 +266,8 @@ async function confirmPurchase(id) {
       }
 
       const reservation = reservationSnapshot.data();
+      loggedReservation = reservation;
+
       const giftRef = doc(
         db,
         "presentes",
@@ -315,6 +323,22 @@ async function confirmPurchase(id) {
       });
     });
 
+    await tryRecordAdminLog({
+      module: "reservas",
+      action: "compra_confirmada",
+      recordId: id,
+      summary:
+        `Compra do presente “${loggedReservation?.giftName || "presente"}” confirmada.`,
+      details: {
+        guestName:
+          loggedReservation?.guestName || "",
+        giftId:
+          loggedReservation?.giftId || "",
+        giftName:
+          loggedReservation?.giftName || ""
+      }
+    });
+
     toast("Compra confirmada");
     await load();
   } catch (error) {
@@ -332,6 +356,8 @@ async function release(id) {
   }
 
   try {
+    let loggedReservation = null;
+
     await runTransaction(db, async transaction => {
       const reservationRef = doc(db, "reservas", id);
       const reservationSnapshot =
@@ -342,6 +368,8 @@ async function release(id) {
       }
 
       const reservation = reservationSnapshot.data();
+      loggedReservation = reservation;
+
       const giftRef = doc(
         db,
         "presentes",
@@ -392,6 +420,22 @@ async function release(id) {
           status: "cancelada_admin",
           updatedAt: now
         });
+      }
+    });
+
+    await tryRecordAdminLog({
+      module: "reservas",
+      action: "reserva_liberada",
+      recordId: id,
+      summary:
+        `Reserva do presente “${loggedReservation?.giftName || "presente"}” liberada pelo ADM.`,
+      details: {
+        guestName:
+          loggedReservation?.guestName || "",
+        giftId:
+          loggedReservation?.giftId || "",
+        giftName:
+          loggedReservation?.giftName || ""
       }
     });
 

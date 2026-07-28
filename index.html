@@ -1,16 +1,4 @@
 <!doctype html>
-<!DOCTYPE html>
-
-<!DOCTYPE html>
-
-<!DOCTYPE html>
-
-<!DOCTYPE html>
-
-<!DOCTYPE html>
-
-<!DOCTYPE html>
-
 <html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" name="viewport"/><title>Visão geral — Painel ADM</title><link href="assets/img/monograma.svg" rel="icon" type="image/svg+xml"/><script id="admin-menu-session-bootstrap">
 (function () {
   try {
@@ -51,8 +39,18 @@
     sessionStorage.removeItem("adminShellAccess");
   }
 })();
-</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/admin-mobile.css?v=2.5.2" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.7" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script><script src="assets/js/site-button.js?v=2.8.2" type="module"></script></head>
-<body data-page="dashboard">
+</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.7" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script><script src="assets/js/site-button.js?v=2.8.2" type="module"></script><link href="assets/css/admin-mobile.css?v=2.9.2" rel="stylesheet"/><style id="admin-critical-layout-v292">
+@media (max-width:900px){
+ body.admin-layout-v292 .section-head{display:block!important;position:static!important;width:100%!important;margin:0 0 16px!important;padding:0!important}
+ body.admin-layout-v292 .section-head>div:not(.actions){display:block!important;position:static!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
+ body.admin-layout-v292 .section-head h2{display:block!important;position:static!important;width:100%!important;margin:0!important;padding:0!important;font-size:clamp(1.65rem,6vw,2.05rem)!important;line-height:1.18!important;white-space:normal!important;overflow-wrap:break-word!important}
+ body.admin-layout-v292 .section-head .section-description{display:block!important;position:static!important;width:100%!important;max-width:60ch!important;margin:8px 0 0!important;padding:0!important;font-size:.88rem!important;line-height:1.5!important;white-space:normal!important}
+ body.admin-layout-v292 .section-head>.actions,body.admin-layout-v292 .section-head>.btn{position:static!important;float:none!important;clear:both!important;width:100%!important;max-width:none!important;margin:14px 0 0!important}
+ body.admin-layout-v292 .section-head>.actions{display:grid!important;grid-template-columns:1fr!important;gap:9px!important}
+ body.admin-layout-v292 .section-head>.actions>*,body.admin-layout-v292 .section-head>.btn{width:100%!important;min-width:0!important;max-width:100%!important;margin:0!important;justify-content:center!important}
+}
+</style><link href="assets/css/dashboard-responsive.css?v=2.9.3" rel="stylesheet"/></head>
+<body data-page="dashboard" class="admin-layout-v292">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
 <a class="admin-brand" href="index.html"><img alt="" src="assets/img/monograma.svg"/><span>Painel ADM</span></a>
@@ -76,6 +74,19 @@
 <header class="admin-topbar"><div class="topbar-left"><button aria-label="Abrir menu" class="menu-toggle" id="menuToggle" type="button"><span aria-hidden="true" class="ui-icon icon-menu"></span></button><div><p class="eyebrow">Administração</p><h1>Visão geral</h1></div></div><div class="user-chip"><img alt="" id="userPhoto"/><div><strong id="userName"></strong><small id="userEmail"></small></div></div></header>
 <section class="setup-card hidden" id="setupArea"><p class="eyebrow">Primeiro acesso</p><h2 style="margin:0;font-family:var(--title-font);font-size:2.2rem;font-weight:400">Inicialização necessária</h2><p>Crie as configurações iniciais e importe os 81 presentes da planilha.</p><button class="btn btn-primary" id="initializeButton"><span aria-hidden="true" class="ui-icon icon-settings"></span>Inicializar projeto no Firebase</button><div class="notice hidden" id="setupMessage" style="margin-top:14px"></div></section>
 <section class="dashboard-grid"><article class="dashboard-card"><span aria-hidden="true" class="ui-icon icon-family dashboard-card-icon"></span><span>Famílias confirmadas</span><strong id="statFamilies">0</strong></article><article class="dashboard-card"><span aria-hidden="true" class="ui-icon icon-adult dashboard-card-icon"></span><span>Adultos</span><strong id="statAdults">0</strong></article><article class="dashboard-card"><span aria-hidden="true" class="ui-icon icon-child dashboard-card-icon"></span><span>Crianças</span><strong id="statChildren">0</strong></article><article class="dashboard-card"><span aria-hidden="true" class="ui-icon icon-gifts dashboard-card-icon"></span><span>Presentes visíveis</span><strong id="statGifts">0</strong></article><article class="dashboard-card"><span aria-hidden="true" class="ui-icon icon-reservations dashboard-card-icon"></span><span>Reservas ativas</span><strong id="statReservations">0</strong></article><article class="dashboard-card"><span aria-hidden="true" class="ui-icon icon-pix dashboard-card-icon"></span><span>PIX pendentes</span><strong id="statPixPending">0</strong></article></section>
-<section class="quick-grid"><a class="quick-card" href="confirmacoes.html"><span aria-hidden="true" class="ui-icon icon-confirmations quick-card-icon"></span><strong>Confirmações</strong><span>Adultos, crianças e famílias.</span></a><a class="quick-card" href="presentes.html"><span aria-hidden="true" class="ui-icon icon-gifts quick-card-icon"></span><strong>Presentes</strong><span>Cadastro e status dos itens.</span></a><a class="quick-card" href="pix.html"><span aria-hidden="true" class="ui-icon icon-pix quick-card-icon"></span><strong>PIX</strong><span>Configuração e confirmações.</span></a></section>
+<section aria-label="Acessos rápidos" class="quick-grid dashboard-quick-grid">
+<a class="quick-card dashboard-quick-card" href="confirmacoes.html">
+<span aria-hidden="true" class="ui-icon icon-confirmations quick-card-icon"></span>
+<span class="quick-card-copy"><strong>Confirmações</strong><small>Adultos, crianças e famílias.</small></span>
+</a>
+<a class="quick-card dashboard-quick-card" href="presentes.html">
+<span aria-hidden="true" class="ui-icon icon-gifts quick-card-icon"></span>
+<span class="quick-card-copy"><strong>Presentes</strong><small>Cadastro e status dos itens.</small></span>
+</a>
+<a class="quick-card dashboard-quick-card" href="pix.html">
+<span aria-hidden="true" class="ui-icon icon-pix quick-card-icon"></span>
+<span class="quick-card-copy"><strong>PIX</strong><small>Configuração e confirmações.</small></span>
+</a>
+</section>
 </main></div><div class="toast hidden" id="toast"></div>
-<script src="assets/js/pages/dashboard.js?v=2.6.5" type="module"></script></body></html>
+<script src="assets/js/pages/dashboard.js?v=3.0.0" type="module"></script></body></html>

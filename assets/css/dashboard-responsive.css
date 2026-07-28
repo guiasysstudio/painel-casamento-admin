@@ -1,0 +1,150 @@
+/*
+ * VISÃO GERAL — CELULAR E TABLET — 2.9.3
+ * Somente a página inicial do painel ADM.
+ */
+
+body[data-page="dashboard"] .dashboard-quick-card,
+body[data-page="dashboard"] .quick-card-copy,
+body[data-page="dashboard"] .quick-card-copy strong,
+body[data-page="dashboard"] .quick-card-copy small {
+  min-width: 0;
+}
+
+body[data-page="dashboard"] .quick-card-copy {
+  display: grid;
+  gap: 5px;
+}
+
+body[data-page="dashboard"] .quick-card-copy strong {
+  display: block;
+  margin: 0;
+  color: var(--dark);
+  line-height: 1.16;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+body[data-page="dashboard"] .quick-card-copy small {
+  display: block;
+  margin: 0;
+  color: var(--muted);
+  font-size: .86rem;
+  line-height: 1.45;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+@media (min-width: 761px) and (max-width: 1020px) {
+  body[data-page="dashboard"] .dashboard-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  body[data-page="dashboard"] .dashboard-quick-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    margin-top: 16px !important;
+  }
+
+  body[data-page="dashboard"] .dashboard-quick-card {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    align-content: start;
+    gap: 12px;
+    min-height: 150px;
+    padding: 18px !important;
+  }
+
+  body[data-page="dashboard"] .dashboard-quick-card .quick-card-icon {
+    --icon-size: 29px;
+    display: block;
+    margin: 0;
+    color: var(--terracotta);
+  }
+
+  body[data-page="dashboard"] .quick-card-copy strong {
+    font-size: 1.38rem !important;
+  }
+}
+
+@media (max-width: 760px) {
+  body[data-page="dashboard"] .dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+  }
+
+  body[data-page="dashboard"] .dashboard-card {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    align-content: start;
+    min-height: 116px !important;
+    padding: 13px !important;
+  }
+
+  body[data-page="dashboard"] .dashboard-card .dashboard-card-icon {
+    --icon-size: 25px;
+    margin: 0 0 10px;
+  }
+
+  body[data-page="dashboard"] .dashboard-card > span:not(.ui-icon) {
+    font-size: .75rem !important;
+    line-height: 1.3 !important;
+  }
+
+  body[data-page="dashboard"] .dashboard-card > strong {
+    align-self: end;
+    margin-top: 8px !important;
+    font-size: 2rem !important;
+    line-height: 1 !important;
+  }
+
+  body[data-page="dashboard"] .dashboard-quick-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-top: 18px !important;
+  }
+
+  body[data-page="dashboard"] .dashboard-quick-card {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    align-items: center;
+    gap: 13px;
+    min-height: 96px;
+    padding: 15px 16px !important;
+    border-radius: 17px !important;
+  }
+
+  body[data-page="dashboard"] .dashboard-quick-card .quick-card-icon {
+    --icon-size: 28px;
+    display: block;
+    width: var(--icon-size);
+    height: var(--icon-size);
+    margin: 0;
+    color: var(--primary);
+  }
+
+  body[data-page="dashboard"] .quick-card-copy {
+    gap: 4px;
+  }
+
+  body[data-page="dashboard"] .quick-card-copy strong {
+    font-size: 1.34rem !important;
+    line-height: 1.18 !important;
+  }
+
+  body[data-page="dashboard"] .quick-card-copy small {
+    font-size: .82rem;
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 360px) {
+  body[data-page="dashboard"] .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  body[data-page="dashboard"] .dashboard-card {
+    min-height: 106px !important;
+  }
+}
