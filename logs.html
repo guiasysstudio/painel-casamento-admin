@@ -5,41 +5,155 @@
     var user = JSON.parse(
       sessionStorage.getItem("adminShellUser") || "null"
     );
+
     var access = JSON.parse(
       sessionStorage.getItem("adminShellAccess") || "null"
     );
 
-    if (!user || !access || access.active !== true) return;
-
-    var userEmail = String(user.email || "").trim().toLowerCase();
-    var accessEmail = String(access.email || "").trim().toLowerCase();
-
-    /*
-     * Cache antigo sem e-mail não é usado. Depois de uma autenticação
-     * com a versão 2.6.5, o cache já estará vinculado à conta correta.
-     */
-    if (!userEmail || !accessEmail || userEmail !== accessEmail) return;
-
-    var root = document.documentElement;
-    root.classList.add("admin-menu-session-ready");
-
-    if (access.role === "master") {
-      root.classList.add("admin-menu-master");
+    if (
+      !user ||
+      !access ||
+      access.active !== true
+    ) {
       return;
     }
 
-    var permissions = access.permissions || {};
+    var userEmail =
+      String(user.email || "")
+        .trim()
+        .toLowerCase();
 
-    Object.keys(permissions).forEach(function (permission) {
-      if (permissions[permission] === true) {
-        root.classList.add("admin-perm-" + permission);
+    var accessEmail =
+      String(access.email || "")
+        .trim()
+        .toLowerCase();
+
+    if (
+      !userEmail ||
+      !accessEmail ||
+      userEmail !== accessEmail
+    ) {
+      return;
+    }
+
+    var root =
+      document.documentElement;
+
+    root.classList.add(
+      "admin-menu-session-ready"
+    );
+
+    if (access.role === "master") {
+      root.classList.add(
+        "admin-menu-master"
+      );
+    }
+
+    var permissions =
+      access.permissions || {};
+
+    var definitions = {
+      dashboard: {
+        nav: "dashboard",
+        legacy: null,
+        defaultAccess: true
+      },
+
+      confirmacoes: {
+        nav: "confirmacoes",
+        legacy: "confirmacoes"
+      },
+
+      presentes: {
+        nav: "presentes",
+        legacy: "presentes"
+      },
+
+      reservas: {
+        nav: "reservas",
+        legacy: "reservas"
+      },
+
+      pix: {
+        nav: "pix",
+        legacy: "pix"
+      },
+
+      paginaInicial: {
+        nav: "pagina-inicial",
+        legacy: "configuracoes"
+      },
+
+      entrega: {
+        nav: "entrega",
+        legacy: "configuracoes"
+      },
+
+      dominio: {
+        nav: "dominio",
+        legacy: "configuracoes"
+      },
+
+      administradores: {
+        nav: "administradores",
+        legacy: "administradores"
+      },
+
+      exportacoes: {
+        nav: "exportacoes",
+        legacy: "exportacoes"
+      },
+
+      logs: {
+        nav: "logs",
+        legacy: "logs"
       }
-    });
+    };
+
+    Object.keys(definitions)
+      .forEach(function (permission) {
+        var definition =
+          definitions[permission];
+
+        var legacyMode =
+          Number(
+            access.permissionVersion || 0
+          ) < 2;
+
+        var allowed =
+          typeof permissions[permission] ===
+            "boolean"
+            ? permissions[permission]
+            : (
+                legacyMode &&
+                definition.legacy &&
+                typeof permissions[
+                  definition.legacy
+                ] === "boolean"
+                  ? permissions[
+                      definition.legacy
+                    ]
+                  : (
+                      legacyMode &&
+                      definition.defaultAccess ===
+                        true
+                    )
+              );
+
+        if (allowed) {
+          root.classList.add(
+            "admin-page-" +
+            definition.nav
+          );
+        }
+      });
   } catch (error) {
-    sessionStorage.removeItem("adminShellAccess");
+    sessionStorage.removeItem(
+      "adminShellAccess"
+    );
   }
 })();
-</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.7" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script><script src="assets/js/site-button.js?v=2.8.2" type="module"></script><link href="assets/css/admin-mobile.css?v=2.9.2" rel="stylesheet"/><style id="admin-critical-layout-v292">
+</script><link href="assets/css/admin.css?v=3.2.0" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.7" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script><script src="assets/js/site-button.js?v=2.8.2" type="module"></script><link href="assets/css/admin-mobile.css?v=2.9.2" rel="stylesheet"/><style id="admin-critical-layout-v292">
 @media (max-width:900px){
  body.admin-layout-v292 .section-head{display:block!important;position:static!important;width:100%!important;margin:0 0 16px!important;padding:0!important}
  body.admin-layout-v292 .section-head>div:not(.actions){display:block!important;position:static!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
@@ -49,7 +163,7 @@
  body.admin-layout-v292 .section-head>.actions{display:grid!important;grid-template-columns:1fr!important;gap:9px!important}
  body.admin-layout-v292 .section-head>.actions>*,body.admin-layout-v292 .section-head>.btn{width:100%!important;min-width:0!important;max-width:100%!important;margin:0!important;justify-content:center!important}
 }
-</style><link href="assets/css/logs-backup.css?v=3.0.0" rel="stylesheet"/></head>
+</style><link href="assets/css/logs-backup.css?v=3.1.1" rel="stylesheet"/></head>
 <body data-page="logs" class="admin-layout-v292">
 <div aria-busy="true" class="admin-layout admin-auth-pending" id="adminApp">
 <aside class="admin-sidebar" id="adminSidebar">
@@ -214,6 +328,191 @@
     >
       Carregar mais registros
     </button>
+  </div>
+</section>
+
+
+<section
+  class="page-card automatic-backup-card"
+  id="automaticBackupMasterSection"
+>
+  <div class="section-head">
+    <div>
+      <h2>Backup automático no Google Drive</h2>
+      <p class="section-description">
+        O Firestore será copiado todos os dias para a pasta privada,
+        mantendo somente os 30 backups automáticos mais recentes.
+      </p>
+    </div>
+
+    <div class="actions automatic-backup-head-actions">
+      <a
+        class="btn btn-secondary"
+        href="https://drive.google.com/drive/folders/1iO68sB-4SFlZ87GWhlHBmE4i3TfC6D8n"
+        id="autoBackupFolderLink"
+        rel="noopener"
+        target="_blank"
+      >
+        <span
+          aria-hidden="true"
+          class="ui-icon icon-backup"
+        ></span>
+        Abrir pasta no Drive
+      </a>
+
+      <button
+        class="btn btn-secondary"
+        id="reloadAutoBackupStatusButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="ui-icon icon-refresh"
+        ></span>
+        Atualizar status
+      </button>
+    </div>
+  </div>
+
+  <div class="automatic-backup-status-grid">
+    <article class="automatic-backup-status-item">
+      <span>Status</span>
+      <strong id="autoBackupStatusBadge">
+        Aguardando instalação
+      </strong>
+    </article>
+
+    <article class="automatic-backup-status-item">
+      <span>Último backup concluído</span>
+      <strong id="autoBackupLastSuccess">—</strong>
+    </article>
+
+    <article class="automatic-backup-status-item">
+      <span>Documentos</span>
+      <strong id="autoBackupDocuments">—</strong>
+    </article>
+
+    <article class="automatic-backup-status-item">
+      <span>Tamanho do arquivo</span>
+      <strong id="autoBackupFileSize">—</strong>
+    </article>
+  </div>
+
+  <div class="automatic-backup-details">
+    <div>
+      <span>Agendamento</span>
+      <strong id="autoBackupSchedule">
+        Diariamente por volta de 03:30
+      </strong>
+      <small>Horário de Ji-Paraná — America/Porto_Velho</small>
+    </div>
+
+    <div>
+      <span>Retenção</span>
+      <strong id="autoBackupRetention">
+        30 arquivos automáticos
+      </strong>
+      <small>Arquivos mais antigos são enviados para a lixeira.</small>
+    </div>
+
+    <div>
+      <span>Último arquivo</span>
+      <a
+        class="automatic-backup-file-link is-disabled"
+        href="#"
+        id="autoBackupLastFileLink"
+      >
+        Nenhum backup registrado
+      </a>
+    </div>
+  </div>
+
+  <div
+    class="notice danger hidden"
+    id="autoBackupLastErrorBox"
+  ></div>
+
+  <div class="automatic-backup-webapp-config">
+    <div class="field">
+      <label for="autoBackupAppsScriptUrl">
+        URL da implantação do Google Apps Script
+      </label>
+
+      <input
+        autocomplete="off"
+        id="autoBackupAppsScriptUrl"
+        placeholder="https://script.google.com/macros/s/.../exec"
+        type="url"
+      >
+
+      <small>
+        Essa URL é usada somente para executar um backup imediato pelo painel.
+        O agendamento diário funciona mesmo sem abrir esta página.
+      </small>
+    </div>
+
+    <div class="actions automatic-backup-actions">
+      <button
+        class="btn btn-secondary"
+        id="saveAutoBackupUrlButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="ui-icon icon-save"
+        ></span>
+        Salvar URL
+      </button>
+
+      <button
+        class="btn btn-primary"
+        disabled
+        id="runAutoBackupNowButton"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="ui-icon icon-backup"
+        ></span>
+        Executar backup agora
+      </button>
+    </div>
+  </div>
+
+  <div
+    class="notice hidden"
+    id="autoBackupMessage"
+  ></div>
+
+  <div
+    aria-live="polite"
+    class="automatic-backup-progress hidden"
+    id="autoBackupProgress"
+  >
+    <div class="automatic-backup-progress-head">
+      <span id="autoBackupProgressText">
+        Preparando backup...
+      </span>
+
+      <strong id="autoBackupProgressPercent">
+        0%
+      </strong>
+    </div>
+
+    <div
+      aria-label="Progresso do backup automático"
+      aria-valuemax="100"
+      aria-valuemin="0"
+      aria-valuenow="0"
+      class="automatic-backup-progress-track"
+      id="autoBackupProgressBar"
+      role="progressbar"
+    >
+      <span
+        class="automatic-backup-progress-fill"
+        id="autoBackupProgressFill"
+      ></span>
+    </div>
   </div>
 </section>
 
@@ -444,4 +743,4 @@
   </div>
 </section>
 </main></div><div class="toast hidden" id="toast"></div>
-<script src="assets/js/pages/logs.js?v=3.0.0" type="module"></script></body></html>
+<script src="assets/js/pages/logs.js?v=3.2.0" type="module"></script></body></html>

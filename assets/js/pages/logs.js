@@ -3,16 +3,24 @@ import {
   db,
   $,
   esc,
-  toast
-} from "../admin-core.js";
+  toast,
+  currentUser,
+  hasSubPermission
+} from "../admin-core.js?v=3.2.0";
 
 import {
+  Bytes,
   collection,
   doc,
+  GeoPoint,
+  getDoc,
   getDocs,
   limit,
+  onSnapshot,
   orderBy,
   query,
+  serverTimestamp,
+  setDoc,
   startAfter,
   Timestamp,
   writeBatch
@@ -25,15 +33,37 @@ import {
 import {
   recordAdminLog,
   tryRecordAdminLog
-} from "../audit-log.js";
+} from "../audit-log.js?v=3.2.0";
+
+import {
+  normalizeAutomaticBackupUrl,
+  runAutomaticBackupNow
+} from "../automatic-backup-service.js?v=3.2.0";
 
 const PAGE_SIZE = 100;
 const RESTORE_BATCH_SIZE = 400;
 const BACKUP_SIGNATURE =
   "site-casamento-firestore-backup";
 
+const AUTOMATIC_BACKUP_CONFIG = Object.freeze({
+  documentPath: [
+    "configuracoes",
+    "backupAutomatico"
+  ],
+  folderId:
+    "1iO68sB-4SFlZ87GWhlHBmE4i3TfC6D8n",
+  folderUrl:
+    "https://drive.google.com/drive/folders/1iO68sB-4SFlZ87GWhlHBmE4i3TfC6D8n",
+  scheduleTime: "03:30",
+  timezone: "America/Porto_Velho",
+  retentionCount: 30
+});
+
 const PROTECTED_MASTER_PATH =
   "administradores/lindolfoandrew0@gmail.com";
+
+const PROTECTED_AUTOMATIC_BACKUP_PATH =
+  "configuracoes/backupAutomatico";
 
 const MODULE_LABELS = Object.freeze({
   sistema: "Sistema",
@@ -61,6 +91,14 @@ const ACTION_LABELS = Object.freeze({
   pix_reaberto: "PIX reaberto",
   backup_gerado: "Backup gerado",
   backup_restaurado: "Backup restaurado",
+  backup_automatico_configurado:
+    "Backup automático configurado",
+  backup_automatico_concluido:
+    "Backup automático concluído",
+  backup_automatico_erro:
+    "Erro no backup automático",
+  permissoes_migradas:
+    "Permissões migradas",
   logs_exportados: "Logs exportados",
   logs_limpos: "Logs limpos",
   arquivo_exportado: "Arquivo exportado"
@@ -73,7 +111,8 @@ const BACKUP_LABELS = Object.freeze({
   reservas: "Reservas e perfis",
   pix: "PIX e perfis",
   administradores: "Administradores",
-  logs: "Logs administrativos"
+  logs: "Logs administrativos",
+  outros: "Outros documentos"
 });
 
 let loadedLogs = [];
@@ -81,6 +120,11 @@ let lastLogDocument = null;
 let hasMoreLogs = false;
 let masterAccess = false;
 let loadedBackup = null;
+
+let automaticBackupProgressTimer = null;
+let automaticBackupProgressUnsubscribe = null;
+let automaticBackupProgressHideTimer = null;
+let automaticBackupDisplayedPercent = 0;
 
 function showMessage(
   elementId,
@@ -263,15 +307,32 @@ function filteredLogs() {
 
     if (!search) return true;
 
-    const searchable = normalizedSearch([
+    const searchableValues = [
       log.adminName,
       log.adminEmail,
       moduleLabel(log.module),
       actionLabel(log.action),
       log.summary,
-      log.recordId,
-      JSON.stringify(log.details || {})
-    ].join(" "));
+      log.recordId
+    ];
+
+    if (
+      hasSubPermission(
+        "logs",
+        "viewDetails"
+      )
+    ) {
+      searchableValues.push(
+        JSON.stringify(
+          log.details || {}
+        )
+      );
+    }
+
+    const searchable =
+      normalizedSearch(
+        searchableValues.join(" ")
+      );
 
     return searchable.includes(search);
   });
@@ -387,6 +448,12 @@ function renderLogs() {
   const entries = filteredLogs();
   const area = $("logsTableArea");
 
+  const canViewDetails =
+    hasSubPermission(
+      "logs",
+      "viewDetails"
+    );
+
   updateStatistics(entries);
 
   if (!entries.length) {
@@ -463,6 +530,7 @@ function renderLogs() {
                   </strong>
 
                   ${
+                    canViewDetails &&
                     details !== "{}"
                       ? `
                         <details>
@@ -470,7 +538,15 @@ function renderLogs() {
                           <pre class="log-details-data">${esc(details)}</pre>
                         </details>
                       `
-                      : ""
+                      : (
+                          details !== "{}"
+                            ? `
+                              <small class="log-record-id">
+                                Detalhes restritos
+                              </small>
+                            `
+                            : ""
+                        )
                   }
                 </div>
               </td>
@@ -576,6 +652,26 @@ async function loadLogs({
 }
 
 async function exportLogs() {
+  if (
+    !hasSubPermission(
+      "logs",
+      "exportLogs"
+    )
+  ) {
+    showMessage(
+      "logsMessage",
+      "Esta conta não pode exportar os logs.",
+      "warning"
+    );
+    return;
+  }
+
+  const canViewDetails =
+    hasSubPermission(
+      "logs",
+      "viewDetails"
+    );
+
   const entries = filteredLogs();
 
   if (!entries.length) {
@@ -613,7 +709,11 @@ async function exportLogs() {
       actionLabel(log.action),
       log.summary || "",
       log.recordId || "",
-      JSON.stringify(log.details || {})
+      canViewDetails
+        ? JSON.stringify(
+            log.details || {}
+          )
+        : ""
     ];
   });
 
@@ -655,7 +755,15 @@ async function exportLogs() {
 }
 
 async function clearAllLogs() {
-  if (!masterAccess) return;
+  if (
+    !masterAccess ||
+    !hasSubPermission(
+      "logs",
+      "clearLogs"
+    )
+  ) {
+    return;
+  }
 
   const accepted = confirm(
     "Excluir todos os logs administrativos?\n\n" +
@@ -794,6 +902,63 @@ function deserializeValue(value) {
       value.__firestoreType === "date"
     ) {
       return new Date(value.value);
+    }
+
+    if (
+      value.__firestoreType === "integer"
+    ) {
+      const integer = Number(value.value);
+
+      if (!Number.isSafeInteger(integer)) {
+        throw new Error(
+          "O backup possui um número inteiro fora do limite seguro do navegador."
+        );
+      }
+
+      return integer;
+    }
+
+    if (
+      value.__firestoreType === "bytes"
+    ) {
+      return Bytes.fromBase64String(
+        String(value.value || "")
+      );
+    }
+
+    if (
+      value.__firestoreType === "geopoint"
+    ) {
+      return new GeoPoint(
+        Number(value.latitude),
+        Number(value.longitude)
+      );
+    }
+
+    if (
+      value.__firestoreType === "reference"
+    ) {
+      const marker = "/documents/";
+      const referenceValue = String(
+        value.value || ""
+      );
+      const index = referenceValue.indexOf(
+        marker
+      );
+
+      if (index < 0) {
+        throw new Error(
+          "O backup possui uma referência de documento inválida."
+        );
+      }
+
+      return doc(
+        db,
+        ...referenceValue
+          .slice(index + marker.length)
+          .split("/")
+          .filter(Boolean)
+      );
     }
 
     return Object.fromEntries(
@@ -1449,7 +1614,9 @@ async function restoreBackup() {
     .filter(record =>
       modules.includes(record.module) &&
       record.module !== "logs" &&
-      record.path !== PROTECTED_MASTER_PATH
+      record.path !== PROTECTED_MASTER_PATH &&
+      record.path !==
+        PROTECTED_AUTOMATIC_BACKUP_PATH
     )
     .sort((a, b) => {
       const depthDifference =
@@ -1554,6 +1721,645 @@ async function restoreBackup() {
   }
 }
 
+
+
+function clampAutomaticBackupPercent(value) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    Math.min(100, Math.round(number))
+  );
+}
+
+function estimatedAutomaticBackupMessage(
+  percent
+) {
+  if (percent < 8) {
+    return "Iniciando backup...";
+  }
+
+  if (percent < 20) {
+    return "Validando acesso ao Firestore e ao Google Drive...";
+  }
+
+  if (percent < 60) {
+    return "Lendo os documentos do Firestore...";
+  }
+
+  if (percent < 76) {
+    return "Organizando os dados do backup...";
+  }
+
+  if (percent < 88) {
+    return "Compactando o arquivo...";
+  }
+
+  if (percent < 96) {
+    return "Enviando o backup ao Google Drive...";
+  }
+
+  return "Finalizando e aplicando a retenção...";
+}
+
+function renderAutomaticBackupProgress({
+  percent,
+  message,
+  state = "running",
+  visible = true
+}) {
+  const container = $(
+    "autoBackupProgress"
+  );
+
+  const bar = $(
+    "autoBackupProgressBar"
+  );
+
+  const fill = $(
+    "autoBackupProgressFill"
+  );
+
+  const text = $(
+    "autoBackupProgressText"
+  );
+
+  const percentText = $(
+    "autoBackupProgressPercent"
+  );
+
+  const normalizedPercent =
+    clampAutomaticBackupPercent(
+      percent
+    );
+
+  automaticBackupDisplayedPercent =
+    normalizedPercent;
+
+  container.classList.toggle(
+    "hidden",
+    !visible
+  );
+
+  container.classList.toggle(
+    "is-success",
+    state === "success"
+  );
+
+  container.classList.toggle(
+    "is-error",
+    state === "error"
+  );
+
+  text.textContent =
+    message ||
+    estimatedAutomaticBackupMessage(
+      normalizedPercent
+    );
+
+  percentText.textContent =
+    `${normalizedPercent}%`;
+
+  bar.setAttribute(
+    "aria-valuenow",
+    String(normalizedPercent)
+  );
+
+  fill.style.width =
+    `${normalizedPercent}%`;
+}
+
+function stopAutomaticBackupProgressTracking() {
+  if (automaticBackupProgressTimer) {
+    window.clearInterval(
+      automaticBackupProgressTimer
+    );
+
+    automaticBackupProgressTimer =
+      null;
+  }
+
+  if (
+    automaticBackupProgressUnsubscribe
+  ) {
+    automaticBackupProgressUnsubscribe();
+    automaticBackupProgressUnsubscribe =
+      null;
+  }
+
+  if (automaticBackupProgressHideTimer) {
+    window.clearTimeout(
+      automaticBackupProgressHideTimer
+    );
+
+    automaticBackupProgressHideTimer =
+      null;
+  }
+}
+
+function startAutomaticBackupProgressTracking() {
+  stopAutomaticBackupProgressTracking();
+
+  renderAutomaticBackupProgress({
+    percent: 0,
+    message: "Iniciando backup...",
+    state: "running",
+    visible: true
+  });
+
+  automaticBackupProgressUnsubscribe =
+    onSnapshot(
+      automaticBackupReference(),
+      snapshot => {
+        if (!snapshot.exists()) return;
+
+        const data = snapshot.data();
+        const status = String(
+          data.lastStatus || ""
+        );
+
+        const reportedPercent =
+          clampAutomaticBackupPercent(
+            data.progressPercent
+          );
+
+        const reportedMessage =
+          String(
+            data.progressMessage || ""
+          ).trim();
+
+        if (status === "running") {
+          renderAutomaticBackupProgress({
+            percent: Math.max(
+              automaticBackupDisplayedPercent,
+              reportedPercent
+            ),
+            message:
+              reportedMessage ||
+              estimatedAutomaticBackupMessage(
+                reportedPercent
+              ),
+            state: "running",
+            visible: true
+          });
+        }
+      },
+      error => {
+        console.warn(
+          "Não foi possível acompanhar o progresso em tempo real.",
+          error
+        );
+      }
+    );
+
+  automaticBackupProgressTimer =
+    window.setInterval(
+      () => {
+        if (
+          automaticBackupDisplayedPercent >=
+          94
+        ) {
+          return;
+        }
+
+        let increment = 1;
+
+        if (
+          automaticBackupDisplayedPercent <
+          25
+        ) {
+          increment = 4;
+        } else if (
+          automaticBackupDisplayedPercent <
+          55
+        ) {
+          increment = 2;
+        }
+
+        const nextPercent = Math.min(
+          94,
+          automaticBackupDisplayedPercent +
+          increment
+        );
+
+        renderAutomaticBackupProgress({
+          percent: nextPercent,
+          message:
+            estimatedAutomaticBackupMessage(
+              nextPercent
+            ),
+          state: "running",
+          visible: true
+        });
+      },
+      900
+    );
+}
+
+function finishAutomaticBackupProgress({
+  success,
+  message
+}) {
+  stopAutomaticBackupProgressTracking();
+
+  renderAutomaticBackupProgress({
+    percent: success
+      ? 100
+      : automaticBackupDisplayedPercent,
+    message:
+      message ||
+      (
+        success
+          ? "Backup concluído e salvo no Google Drive."
+          : "O backup não foi concluído."
+      ),
+    state: success
+      ? "success"
+      : "error",
+    visible: true
+  });
+
+  automaticBackupProgressHideTimer =
+    window.setTimeout(
+      () => {
+        $("autoBackupProgress")
+          .classList.add("hidden");
+
+        automaticBackupProgressHideTimer =
+          null;
+      },
+      success ? 1800 : 3200
+    );
+}
+
+
+function automaticBackupReference() {
+  return doc(
+    db,
+    ...AUTOMATIC_BACKUP_CONFIG.documentPath
+  );
+}
+
+function timestampDate(value) {
+  if (!value) return null;
+
+  if (value?.toDate) {
+    return value.toDate();
+  }
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime())
+    ? null
+    : date;
+}
+
+function formatAutomaticBackupDate(value) {
+  const date = timestampDate(value);
+
+  if (!date) return "—";
+
+  return new Intl.DateTimeFormat(
+    "pt-BR",
+    {
+      dateStyle: "short",
+      timeStyle: "medium"
+    }
+  ).format(date);
+}
+
+function formatAutomaticBackupBytes(value) {
+  const bytes = Number(value || 0);
+
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return "—";
+  }
+
+  if (bytes < 1024) {
+    return `${bytes} bytes`;
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(
+    bytes /
+    (1024 * 1024)
+  ).toFixed(2)} MB`;
+}
+
+function automaticBackupStatusLabel(status) {
+  return ({
+    running: "Executando agora",
+    success: "Funcionando",
+    error: "Erro na última execução"
+  })[status] || "Aguardando instalação";
+}
+
+function renderAutomaticBackupStatus(data = {}) {
+  const status = String(
+    data.lastStatus || ""
+  );
+
+  const badge = $(
+    "autoBackupStatusBadge"
+  );
+
+  badge.textContent =
+    automaticBackupStatusLabel(status);
+
+  badge.className =
+    `automatic-backup-status-badge ${
+      status || "pending"
+    }`;
+
+  $("autoBackupLastSuccess").textContent =
+    formatAutomaticBackupDate(
+      data.lastSuccessAt
+    );
+
+  $("autoBackupDocuments").textContent =
+    Number.isFinite(
+      Number(data.lastDocumentCount)
+    )
+      ? String(
+          Number(data.lastDocumentCount)
+        )
+      : "—";
+
+  $("autoBackupFileSize").textContent =
+    formatAutomaticBackupBytes(
+      data.lastFileSize
+    );
+
+  $("autoBackupSchedule").textContent =
+    `Diariamente por volta de ${
+      data.scheduleTime ||
+      AUTOMATIC_BACKUP_CONFIG.scheduleTime
+    }`;
+
+  $("autoBackupRetention").textContent =
+    `${
+      Number(data.retentionCount) ||
+      AUTOMATIC_BACKUP_CONFIG.retentionCount
+    } arquivos automáticos`;
+
+  const fileLink = $(
+    "autoBackupLastFileLink"
+  );
+
+  if (data.lastFileUrl) {
+    fileLink.href = data.lastFileUrl;
+    fileLink.target = "_blank";
+    fileLink.rel = "noopener";
+    fileLink.textContent =
+      data.lastFileName ||
+      "Abrir último backup";
+    fileLink.classList.remove(
+      "is-disabled"
+    );
+  } else {
+    fileLink.href = "#";
+    fileLink.removeAttribute("target");
+    fileLink.removeAttribute("rel");
+    fileLink.textContent =
+      "Nenhum backup registrado";
+    fileLink.classList.add(
+      "is-disabled"
+    );
+  }
+
+  const errorBox = $(
+    "autoBackupLastErrorBox"
+  );
+
+  if (
+    status === "error" &&
+    data.lastError
+  ) {
+    errorBox.textContent =
+      `Último erro: ${data.lastError}`;
+    errorBox.classList.remove("hidden");
+  } else {
+    errorBox.textContent = "";
+    errorBox.classList.add("hidden");
+  }
+
+  const urlInput = $(
+    "autoBackupAppsScriptUrl"
+  );
+
+  if (
+    data.appsScriptUrl &&
+    !urlInput.value
+  ) {
+    urlInput.value = data.appsScriptUrl;
+  }
+
+  $("runAutoBackupNowButton").disabled =
+    !String(urlInput.value || "").trim();
+}
+
+async function loadAutomaticBackupStatus() {
+  if (!masterAccess) return;
+
+  const button = $(
+    "reloadAutoBackupStatusButton"
+  );
+
+  button.disabled = true;
+  hideMessage("autoBackupMessage");
+
+  try {
+    const snapshot = await getDoc(
+      automaticBackupReference()
+    );
+
+    renderAutomaticBackupStatus(
+      snapshot.exists()
+        ? snapshot.data()
+        : {}
+    );
+  } catch (error) {
+    showMessage(
+      "autoBackupMessage",
+      error.message ||
+      "Não foi possível consultar o status do backup automático."
+    );
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function saveAutomaticBackupUrl() {
+  if (!masterAccess) return;
+
+  const button = $(
+    "saveAutoBackupUrlButton"
+  );
+
+  button.disabled = true;
+  hideMessage("autoBackupMessage");
+
+  try {
+    const appsScriptUrl =
+      normalizeAutomaticBackupUrl(
+        $("autoBackupAppsScriptUrl").value
+      );
+
+    if (!appsScriptUrl) {
+      throw new Error(
+        "Informe a URL da implantação do Google Apps Script."
+      );
+    }
+
+    await setDoc(
+      automaticBackupReference(),
+      {
+        appsScriptUrl,
+        folderId:
+          AUTOMATIC_BACKUP_CONFIG.folderId,
+        folderUrl:
+          AUTOMATIC_BACKUP_CONFIG.folderUrl,
+        scheduleTime:
+          AUTOMATIC_BACKUP_CONFIG.scheduleTime,
+        timezone:
+          AUTOMATIC_BACKUP_CONFIG.timezone,
+        retentionCount:
+          AUTOMATIC_BACKUP_CONFIG.retentionCount,
+        updatedAt: serverTimestamp()
+      },
+      {
+        merge: true
+      }
+    );
+
+    await tryRecordAdminLog({
+      module: "logs",
+      action:
+        "backup_automatico_configurado",
+      recordId:
+        "configuracoes/backupAutomatico",
+      summary:
+        "URL do serviço de backup automático configurada.",
+      details: {
+        folderId:
+          AUTOMATIC_BACKUP_CONFIG.folderId,
+        scheduleTime:
+          AUTOMATIC_BACKUP_CONFIG.scheduleTime,
+        timezone:
+          AUTOMATIC_BACKUP_CONFIG.timezone,
+        retentionCount:
+          AUTOMATIC_BACKUP_CONFIG.retentionCount
+      }
+    });
+
+    $("autoBackupAppsScriptUrl").value =
+      appsScriptUrl;
+
+    $("runAutoBackupNowButton").disabled =
+      false;
+
+    showMessage(
+      "autoBackupMessage",
+      "URL salva. O botão Executar backup agora está liberado.",
+      "success"
+    );
+
+    toast("Serviço de backup salvo");
+  } catch (error) {
+    showMessage(
+      "autoBackupMessage",
+      error.message ||
+      "Não foi possível salvar a URL."
+    );
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function executeAutomaticBackupNow() {
+  if (!masterAccess) return;
+
+  const button = $(
+    "runAutoBackupNowButton"
+  );
+
+  button.disabled = true;
+  hideMessage("autoBackupMessage");
+
+  startAutomaticBackupProgressTracking();
+
+  try {
+    const endpoint =
+      normalizeAutomaticBackupUrl(
+        $("autoBackupAppsScriptUrl").value
+      );
+
+    if (!currentUser) {
+      throw new Error(
+        "A sessão administrativa não está disponível."
+      );
+    }
+
+    const idToken = await currentUser
+      .getIdToken(true);
+
+    const result = await runAutomaticBackupNow({
+      endpoint,
+      idToken
+    });
+
+    finishAutomaticBackupProgress({
+      success: true,
+      message:
+        `Backup concluído: ${
+          Number(result.documentCount || 0)
+        } documentos salvos no Google Drive.`
+    });
+
+    showMessage(
+      "autoBackupMessage",
+      `Backup concluído: ${
+        Number(result.documentCount || 0)
+      } documentos enviados ao Google Drive.`,
+      "success"
+    );
+
+    toast("Backup automático concluído");
+
+    await Promise.all([
+      loadAutomaticBackupStatus(),
+      loadLogs()
+    ]);
+  } catch (error) {
+    const message =
+      error.message ||
+      "Não foi possível executar o backup agora.";
+
+    finishAutomaticBackupProgress({
+      success: false,
+      message
+    });
+
+    showMessage(
+      "autoBackupMessage",
+      message
+    );
+  } finally {
+    button.disabled =
+      !String(
+        $("autoBackupAppsScriptUrl").value ||
+        ""
+      ).trim();
+  }
+}
+
 function bindFilters() {
   [
     "logsSearch",
@@ -1579,10 +2385,33 @@ bootstrapPage({
     masterAccess =
       admin.role === "master";
 
-    if (masterAccess) {
+    const canExportLogs =
+      hasSubPermission(
+        "logs",
+        "exportLogs"
+      );
+
+    $("exportLogsButton")
+      .classList.toggle(
+        "hidden",
+        !canExportLogs
+      );
+
+    if (
+      masterAccess &&
+      hasSubPermission(
+        "logs",
+        "clearLogs"
+      )
+    ) {
       $("clearLogsButton")
         .classList.remove("hidden");
     } else {
+      $("clearLogsButton")?.remove();
+    }
+
+    if (!masterAccess) {
+      $("automaticBackupMasterSection")?.remove();
       $("backupMasterSection")?.remove();
     }
 
@@ -1615,6 +2444,49 @@ bootstrapPage({
       );
 
     if (masterAccess) {
+      $("reloadAutoBackupStatusButton")
+        .addEventListener(
+          "click",
+          loadAutomaticBackupStatus
+        );
+
+      $("saveAutoBackupUrlButton")
+        .addEventListener(
+          "click",
+          saveAutomaticBackupUrl
+        );
+
+      $("runAutoBackupNowButton")
+        .addEventListener(
+          "click",
+          executeAutomaticBackupNow
+        );
+
+      $("autoBackupAppsScriptUrl")
+        .addEventListener(
+          "input",
+          () => {
+            $("runAutoBackupNowButton").disabled =
+              !String(
+                $("autoBackupAppsScriptUrl").value ||
+                ""
+              ).trim();
+          }
+        );
+
+      $("autoBackupLastFileLink")
+        .addEventListener(
+          "click",
+          event => {
+            if (
+              event.currentTarget.classList
+                .contains("is-disabled")
+            ) {
+              event.preventDefault();
+            }
+          }
+        );
+
       $("generateBackupButton")
         .addEventListener(
           "click",
@@ -1647,6 +2519,13 @@ bootstrapPage({
         );
     }
 
-    await loadLogs();
+    if (masterAccess) {
+      await Promise.all([
+        loadLogs(),
+        loadAutomaticBackupStatus()
+      ]);
+    } else {
+      await loadLogs();
+    }
   }
 });

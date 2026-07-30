@@ -4,13 +4,14 @@ import {
   $,
   initializeFirebaseProject,
   toast,
-  hasPermission
-} from "../admin-core.js";
+  hasPermission,
+  hasSubPermission
+} from "../admin-core.js?v=3.2.0";
 
 import {
+  collection,
   doc,
   getDoc,
-  collection,
   getDocs,
   query,
   where
@@ -18,11 +19,17 @@ import {
 
 import {
   tryRecordAdminLog
-} from "../audit-log.js";
+} from "../audit-log.js?v=3.2.0";
 
-function setCardVisible(valueId, visible) {
+function setCardVisible(
+  valueId,
+  visible
+) {
   const value = $(valueId);
-  const card = value?.closest(".dashboard-card");
+  const card =
+    value?.closest(
+      ".dashboard-card"
+    );
 
   if (card) {
     card.hidden = !visible;
@@ -31,137 +38,282 @@ function setCardVisible(valueId, visible) {
 
 function filterQuickLinks() {
   const permissionsByPage = {
-    "confirmacoes.html": "confirmacoes",
-    "presentes.html": "presentes",
-    "pix.html": "pix"
+    "confirmacoes.html":
+      "confirmacoes",
+    "presentes.html":
+      "presentes",
+    "pix.html":
+      "pix"
   };
 
-  document.querySelectorAll(".quick-card").forEach(link => {
-    const file = new URL(link.href, location.href)
-      .pathname
-      .split("/")
-      .pop();
+  document
+    .querySelectorAll(
+      ".quick-card"
+    )
+    .forEach(link => {
+      const file =
+        new URL(
+          link.href,
+          location.href
+        )
+          .pathname
+          .split("/")
+          .pop();
 
-    const permission = permissionsByPage[file];
+      const permission =
+        permissionsByPage[file];
 
-    if (permission && !hasPermission(permission)) {
-      link.remove();
-    }
-  });
+      if (
+        permission &&
+        !hasPermission(permission)
+      ) {
+        link.remove();
+      }
+    });
 }
 
 function showEmptyDashboardIfNeeded() {
-  const dashboard = document.querySelector(".dashboard-grid");
-  const quickGrid = document.querySelector(".quick-grid");
+  const dashboard =
+    document.querySelector(
+      ".dashboard-grid"
+    );
 
-  const visibleCards = dashboard
-    ? [...dashboard.children].filter(item => !item.hidden)
-    : [];
+  const quickGrid =
+    document.querySelector(
+      ".quick-grid"
+    );
 
-  if (!visibleCards.length && dashboard) {
+  const visibleCards =
+    dashboard
+      ? [...dashboard.children]
+          .filter(
+            item => !item.hidden
+          )
+      : [];
+
+  if (
+    !visibleCards.length &&
+    dashboard
+  ) {
     dashboard.innerHTML = `
-      <article class="page-card" style="grid-column:1/-1">
-        <p class="eyebrow">Acesso limitado</p>
-        <h2 style="font-family:var(--title-font);font-weight:400;margin:0 0 8px">
-          Nenhum módulo liberado
+      <article
+        class="page-card"
+        style="grid-column:1/-1"
+      >
+        <p class="eyebrow">
+          Acesso limitado
+        </p>
+
+        <h2
+          style="font-family:var(--title-font);font-weight:400;margin:0 0 8px"
+        >
+          Nenhum resumo liberado
         </h2>
+
         <p style="margin:0">
-          Solicite ao administrador Master a liberação das permissões necessárias.
+          A página está disponível, mas os resumos dependem das subpermissões.
         </p>
       </article>
     `;
   }
 
-  if (quickGrid && !quickGrid.children.length) {
+  if (
+    quickGrid &&
+    !quickGrid.children.length
+  ) {
     quickGrid.remove();
   }
 }
 
 async function loadConfirmations() {
-  const snapshot = await getDocs(
-    query(
-      collection(db, "confirmacoes"),
-      where("status", "==", "confirmada")
-    )
-  );
+  const snapshot =
+    await getDocs(
+      query(
+        collection(
+          db,
+          "confirmacoes"
+        ),
+        where(
+          "status",
+          "==",
+          "confirmada"
+        )
+      )
+    );
 
-  $("statFamilies").textContent = snapshot.size;
-  $("statAdults").textContent = snapshot.docs.reduce(
-    (sum, item) => sum + (item.data().counts?.adults || 0),
-    0
-  );
-  $("statChildren").textContent = snapshot.docs.reduce(
-    (sum, item) => sum + (item.data().counts?.children || 0),
-    0
-  );
+  $("statFamilies").textContent =
+    snapshot.size;
+
+  $("statAdults").textContent =
+    snapshot.docs.reduce(
+      (sum, item) =>
+        sum +
+        (
+          item.data()
+            .counts?.adults || 0
+        ),
+      0
+    );
+
+  $("statChildren").textContent =
+    snapshot.docs.reduce(
+      (sum, item) =>
+        sum +
+        (
+          item.data()
+            .counts?.children || 0
+        ),
+      0
+    );
 }
 
 async function loadGifts() {
-  const snapshot = await getDocs(
-    query(
-      collection(db, "presentes"),
-      where("ativo", "==", true),
-      where("visivelPublico", "==", true)
-    )
-  );
+  const snapshot =
+    await getDocs(
+      query(
+        collection(
+          db,
+          "presentes"
+        ),
+        where(
+          "ativo",
+          "==",
+          true
+        ),
+        where(
+          "visivelPublico",
+          "==",
+          true
+        )
+      )
+    );
 
-  $("statGifts").textContent = snapshot.size;
+  $("statGifts").textContent =
+    snapshot.size;
 }
 
 async function loadReservations() {
-  const snapshot = await getDocs(
-    query(
-      collection(db, "reservas"),
-      where("status", "==", "reservado")
-    )
-  );
+  const snapshot =
+    await getDocs(
+      query(
+        collection(
+          db,
+          "reservas"
+        ),
+        where(
+          "status",
+          "==",
+          "reservado"
+        )
+      )
+    );
 
-  $("statReservations").textContent = snapshot.docs.filter(
-    item => item.data().expiresAt?.toMillis?.() > Date.now()
-  ).length;
+  $("statReservations").textContent =
+    snapshot.docs.filter(
+      item =>
+        item.data()
+          .expiresAt
+          ?.toMillis?.() >
+        Date.now()
+    ).length;
 }
 
 async function loadPix() {
-  const snapshot = await getDocs(
-    query(
-      collection(db, "pixInformados"),
-      where("status", "==", "aguardando_confirmacao")
-    )
-  );
+  const snapshot =
+    await getDocs(
+      query(
+        collection(
+          db,
+          "pixInformados"
+        ),
+        where(
+          "status",
+          "==",
+          "aguardando_confirmacao"
+        )
+      )
+    );
 
-  $("statPixPending").textContent = snapshot.size;
+  $("statPixPending").textContent =
+    snapshot.size;
 }
 
 async function loadDashboard() {
   const tasks = [];
 
-  const confirmationAccess = hasPermission("confirmacoes");
-  setCardVisible("statFamilies", confirmationAccess);
-  setCardVisible("statAdults", confirmationAccess);
-  setCardVisible("statChildren", confirmationAccess);
+  const confirmationSummary =
+    hasPermission(
+      "confirmacoes"
+    ) &&
+    hasSubPermission(
+      "dashboard",
+      "viewConfirmationsSummary"
+    );
 
-  if (confirmationAccess) {
-    tasks.push(loadConfirmations());
+  [
+    "statFamilies",
+    "statAdults",
+    "statChildren"
+  ].forEach(id =>
+    setCardVisible(
+      id,
+      confirmationSummary
+    )
+  );
+
+  if (confirmationSummary) {
+    tasks.push(
+      loadConfirmations()
+    );
   }
 
-  const giftAccess = hasPermission("presentes");
-  setCardVisible("statGifts", giftAccess);
+  const giftSummary =
+    hasPermission("presentes") &&
+    hasSubPermission(
+      "dashboard",
+      "viewGiftsSummary"
+    );
 
-  if (giftAccess) {
+  setCardVisible(
+    "statGifts",
+    giftSummary
+  );
+
+  if (giftSummary) {
     tasks.push(loadGifts());
   }
 
-  const reservationAccess = hasPermission("reservas");
-  setCardVisible("statReservations", reservationAccess);
+  const reservationSummary =
+    hasPermission("reservas") &&
+    hasSubPermission(
+      "dashboard",
+      "viewReservationsSummary"
+    );
 
-  if (reservationAccess) {
-    tasks.push(loadReservations());
+  setCardVisible(
+    "statReservations",
+    reservationSummary
+  );
+
+  if (reservationSummary) {
+    tasks.push(
+      loadReservations()
+    );
   }
 
-  const pixAccess = hasPermission("pix");
-  setCardVisible("statPixPending", pixAccess);
+  const pixSummary =
+    hasPermission("pix") &&
+    hasSubPermission(
+      "dashboard",
+      "viewPixSummary"
+    );
 
-  if (pixAccess) {
+  setCardVisible(
+    "statPixPending",
+    pixSummary
+  );
+
+  if (pixSummary) {
     tasks.push(loadPix());
   }
 
@@ -172,53 +324,89 @@ async function loadDashboard() {
 }
 
 bootstrapPage({
-  onReady: async ({ admin }) => {
-    const setupArea = $("setupArea");
-    const initializeButton = $("initializeButton");
+  permission: "dashboard",
 
-    /*
-     * Inicialização completa do Firebase fica disponível somente ao Master.
-     */
-    if (admin.role !== "master") {
+  onReady: async ({ admin }) => {
+    const setupArea =
+      $("setupArea");
+
+    const initializeButton =
+      $("initializeButton");
+
+    if (
+      admin.role !== "master"
+    ) {
       setupArea?.remove();
     } else {
-      const snapshot = await getDoc(
-        doc(db, "configuracoes", "publico")
+      const snapshot =
+        await getDoc(
+          doc(
+            db,
+            "configuracoes",
+            "publico"
+          )
+        );
+
+      setupArea?.classList.toggle(
+        "hidden",
+        snapshot.exists()
       );
 
-      setupArea?.classList.toggle("hidden", snapshot.exists());
+      initializeButton
+        ?.addEventListener(
+          "click",
+          async () => {
+            const message =
+              $("setupMessage");
 
-      initializeButton?.addEventListener("click", async () => {
-        const message = $("setupMessage");
-        initializeButton.disabled = true;
+            initializeButton.disabled =
+              true;
 
-        try {
-          const total = await initializeFirebaseProject();
+            try {
+              const total =
+                await initializeFirebaseProject();
 
-          await tryRecordAdminLog({
-            module: "sistema",
-            action: "inicializacao",
-            recordId: "firebase",
-            summary: `Projeto inicializado com ${total} presentes.`,
-            details: {
-              importedGifts: total
+              await tryRecordAdminLog({
+                module: "sistema",
+                action:
+                  "inicializacao",
+                recordId:
+                  "firebase",
+                summary:
+                  `Projeto inicializado com ${total} presentes.`,
+                details: {
+                  importedGifts:
+                    total
+                }
+              });
+
+              message.className =
+                "notice success";
+
+              message.textContent =
+                `Projeto inicializado com ${total} presentes.`;
+
+              setupArea.classList.add(
+                "hidden"
+              );
+
+              toast(
+                "Firebase inicializado"
+              );
+
+              await loadDashboard();
+            } catch (error) {
+              message.className =
+                "notice danger";
+
+              message.textContent =
+                error.message;
+            } finally {
+              initializeButton.disabled =
+                false;
             }
-          });
-
-          message.className = "notice success";
-          message.textContent =
-            `Projeto inicializado com ${total} presentes.`;
-
-          setupArea.classList.add("hidden");
-          toast("Firebase inicializado");
-          await loadDashboard();
-        } catch (error) {
-          message.className = "notice danger";
-          message.textContent = error.message;
-        } finally {
-          initializeButton.disabled = false;
-        }
-      });
+          }
+        );
     }
 
     await loadDashboard();

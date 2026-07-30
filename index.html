@@ -5,41 +5,155 @@
     var user = JSON.parse(
       sessionStorage.getItem("adminShellUser") || "null"
     );
+
     var access = JSON.parse(
       sessionStorage.getItem("adminShellAccess") || "null"
     );
 
-    if (!user || !access || access.active !== true) return;
-
-    var userEmail = String(user.email || "").trim().toLowerCase();
-    var accessEmail = String(access.email || "").trim().toLowerCase();
-
-    /*
-     * Cache antigo sem e-mail não é usado. Depois de uma autenticação
-     * com a versão 2.6.5, o cache já estará vinculado à conta correta.
-     */
-    if (!userEmail || !accessEmail || userEmail !== accessEmail) return;
-
-    var root = document.documentElement;
-    root.classList.add("admin-menu-session-ready");
-
-    if (access.role === "master") {
-      root.classList.add("admin-menu-master");
+    if (
+      !user ||
+      !access ||
+      access.active !== true
+    ) {
       return;
     }
 
-    var permissions = access.permissions || {};
+    var userEmail =
+      String(user.email || "")
+        .trim()
+        .toLowerCase();
 
-    Object.keys(permissions).forEach(function (permission) {
-      if (permissions[permission] === true) {
-        root.classList.add("admin-perm-" + permission);
+    var accessEmail =
+      String(access.email || "")
+        .trim()
+        .toLowerCase();
+
+    if (
+      !userEmail ||
+      !accessEmail ||
+      userEmail !== accessEmail
+    ) {
+      return;
+    }
+
+    var root =
+      document.documentElement;
+
+    root.classList.add(
+      "admin-menu-session-ready"
+    );
+
+    if (access.role === "master") {
+      root.classList.add(
+        "admin-menu-master"
+      );
+    }
+
+    var permissions =
+      access.permissions || {};
+
+    var definitions = {
+      dashboard: {
+        nav: "dashboard",
+        legacy: null,
+        defaultAccess: true
+      },
+
+      confirmacoes: {
+        nav: "confirmacoes",
+        legacy: "confirmacoes"
+      },
+
+      presentes: {
+        nav: "presentes",
+        legacy: "presentes"
+      },
+
+      reservas: {
+        nav: "reservas",
+        legacy: "reservas"
+      },
+
+      pix: {
+        nav: "pix",
+        legacy: "pix"
+      },
+
+      paginaInicial: {
+        nav: "pagina-inicial",
+        legacy: "configuracoes"
+      },
+
+      entrega: {
+        nav: "entrega",
+        legacy: "configuracoes"
+      },
+
+      dominio: {
+        nav: "dominio",
+        legacy: "configuracoes"
+      },
+
+      administradores: {
+        nav: "administradores",
+        legacy: "administradores"
+      },
+
+      exportacoes: {
+        nav: "exportacoes",
+        legacy: "exportacoes"
+      },
+
+      logs: {
+        nav: "logs",
+        legacy: "logs"
       }
-    });
+    };
+
+    Object.keys(definitions)
+      .forEach(function (permission) {
+        var definition =
+          definitions[permission];
+
+        var legacyMode =
+          Number(
+            access.permissionVersion || 0
+          ) < 2;
+
+        var allowed =
+          typeof permissions[permission] ===
+            "boolean"
+            ? permissions[permission]
+            : (
+                legacyMode &&
+                definition.legacy &&
+                typeof permissions[
+                  definition.legacy
+                ] === "boolean"
+                  ? permissions[
+                      definition.legacy
+                    ]
+                  : (
+                      legacyMode &&
+                      definition.defaultAccess ===
+                        true
+                    )
+              );
+
+        if (allowed) {
+          root.classList.add(
+            "admin-page-" +
+            definition.nav
+          );
+        }
+      });
   } catch (error) {
-    sessionStorage.removeItem("adminShellAccess");
+    sessionStorage.removeItem(
+      "adminShellAccess"
+    );
   }
 })();
-</script><link href="assets/css/admin.css?v=2.6.5" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.7" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script><script src="assets/js/site-button.js?v=2.8.2" type="module"></script><link href="assets/css/admin-mobile.css?v=2.9.2" rel="stylesheet"/><style id="admin-critical-layout-v292">
+</script><link href="assets/css/admin.css?v=3.2.0" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.7" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script><script src="assets/js/site-button.js?v=2.8.2" type="module"></script><link href="assets/css/admin-mobile.css?v=2.9.2" rel="stylesheet"/><style id="admin-critical-layout-v292">
 @media (max-width:900px){
  body.admin-layout-v292 .section-head{display:block!important;position:static!important;width:100%!important;margin:0 0 16px!important;padding:0!important}
  body.admin-layout-v292 .section-head>div:not(.actions){display:block!important;position:static!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
@@ -89,4 +203,4 @@
 </a>
 </section>
 </main></div><div class="toast hidden" id="toast"></div>
-<script src="assets/js/pages/dashboard.js?v=3.0.0" type="module"></script></body></html>
+<script src="assets/js/pages/dashboard.js?v=3.2.0" type="module"></script></body></html>

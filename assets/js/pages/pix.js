@@ -5,8 +5,9 @@ import {
   esc,
   money,
   currentUser,
+  hasSubPermission,
   toast
-} from "../admin-core.js";
+} from "../admin-core.js?v=3.2.0";
 
 import {
   collection,
@@ -32,7 +33,7 @@ import {
 
 import {
   tryRecordAdminLog
-} from "../audit-log.js";
+} from "../audit-log.js?v=3.2.0";
 
 let pixEntries = [];
 let pixConfiguration = null;
@@ -137,21 +138,45 @@ function filteredEntries() {
     .trim()
     .toLocaleLowerCase("pt-BR");
 
-  const selectedStatus = $("pixStatusFilter").value;
+  const selectedStatus =
+    $("pixStatusFilter").value;
+
+  const canViewContacts =
+    hasSubPermission(
+      "pix",
+      "viewContacts"
+    );
 
   return pixEntries.filter(entry => {
-    const haystack = [
+    const searchableValues = [
       entry.guestName,
-      entry.whatsapp,
       entry.giftName,
       entry.txid
-    ]
-      .join(" ")
-      .toLocaleLowerCase("pt-BR");
+    ];
+
+    if (canViewContacts) {
+      searchableValues.push(
+        entry.whatsapp
+      );
+    }
+
+    const haystack =
+      searchableValues
+        .join(" ")
+        .toLocaleLowerCase(
+          "pt-BR"
+        );
 
     return (
-      (!term || haystack.includes(term)) &&
-      (!selectedStatus || entry.status === selectedStatus)
+      (
+        !term ||
+        haystack.includes(term)
+      )
+      && (
+        !selectedStatus ||
+        entry.status ===
+          selectedStatus
+      )
     );
   });
 }
@@ -197,6 +222,48 @@ function renderTable() {
   const area = $("tableArea");
   const list = filteredEntries();
 
+  const canViewContacts =
+    hasSubPermission(
+      "pix",
+      "viewContacts"
+    );
+
+  const canViewReceipts =
+    hasSubPermission(
+      "pix",
+      "viewReceipts"
+    );
+
+  const canConfirm =
+    hasSubPermission(
+      "pix",
+      "confirm"
+    );
+
+  const canReject =
+    hasSubPermission(
+      "pix",
+      "reject"
+    );
+
+  const canUnconfirm =
+    hasSubPermission(
+      "pix",
+      "unconfirm"
+    );
+
+  const canReopen =
+    hasSubPermission(
+      "pix",
+      "reopen"
+    );
+
+  const canDelete =
+    hasSubPermission(
+      "pix",
+      "delete"
+    );
+
   area.innerHTML = `
     <table>
       <thead>
@@ -225,7 +292,19 @@ function renderTable() {
               <td>
                 <strong>${esc(entry.guestName || "Sem nome")}</strong>
                 <br>
-                <small>${esc(entry.whatsapp || "")}</small>
+                ${
+                  canViewContacts
+                    ? `
+                      <small>
+                        ${esc(entry.whatsapp || "")}
+                      </small>
+                    `
+                    : `
+                      <small>
+                        Contato restrito
+                      </small>
+                    `
+                }
               </td>
 
               <td>
@@ -249,34 +328,42 @@ function renderTable() {
 
               <td>
                 ${
-                  entry.receiptFileUrl
+                  !canViewReceipts
                     ? `
-                      <div class="pix-receipt-admin">
-                        <a
-                          class="btn btn-small btn-secondary"
-                          href="${esc(entry.receiptFileUrl)}"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="Abrir comprovante no Google Drive"
-                        >
-                          Abrir comprovante
-                        </a>
-
-                        <small title="${esc(entry.receiptFileName || "")}">
-                          ${esc(entry.receiptFileName || "Arquivo enviado")}
-                          ${
-                            entry.receiptSize
-                              ? ` • ${esc(formatReceiptSize(entry.receiptSize))}`
-                              : ""
-                          }
-                        </small>
-                      </div>
-                    `
-                    : `
-                      <span class="status warn">
-                        Não enviado
+                      <span class="status">
+                        Acesso restrito
                       </span>
                     `
+                    : (
+                        entry.receiptFileUrl
+                          ? `
+                            <div class="pix-receipt-admin">
+                              <a
+                                class="btn btn-small btn-secondary"
+                                href="${esc(entry.receiptFileUrl)}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="Abrir comprovante no Google Drive"
+                              >
+                                Abrir comprovante
+                              </a>
+
+                              <small title="${esc(entry.receiptFileName || "")}">
+                                ${esc(entry.receiptFileName || "Arquivo enviado")}
+                                ${
+                                  entry.receiptSize
+                                    ? ` • ${esc(formatReceiptSize(entry.receiptSize))}`
+                                    : ""
+                                }
+                              </small>
+                            </div>
+                          `
+                          : `
+                            <span class="status warn">
+                              Não enviado
+                            </span>
+                          `
+                      )
                 }
               </td>
 
@@ -289,7 +376,8 @@ function renderTable() {
               <td>
                 <div class="pix-status-actions">
                   ${
-                    entry.status === "aguardando_confirmacao"
+                    entry.status === "aguardando_confirmacao" &&
+                    canConfirm
                       ? `
                         <button
                           class="btn btn-small btn-primary"
@@ -299,6 +387,28 @@ function renderTable() {
                           Confirmar
                         </button>
 
+                        ${
+                          canReject
+                            ? `
+                              <button
+                                class="btn btn-small btn-secondary"
+                                type="button"
+                                data-reject="${entry.id}"
+                              >
+                                Recusar
+                              </button>
+                            `
+                            : ""
+                        }
+                      `
+                      : ""
+                  }
+
+                  ${
+                    entry.status === "aguardando_confirmacao" &&
+                    !canConfirm &&
+                    canReject
+                      ? `
                         <button
                           class="btn btn-small btn-secondary"
                           type="button"
@@ -311,7 +421,8 @@ function renderTable() {
                   }
 
                   ${
-                    entry.status === "confirmado"
+                    entry.status === "confirmado" &&
+                    canUnconfirm
                       ? `
                         <button
                           class="btn btn-small btn-unconfirm"
@@ -325,7 +436,8 @@ function renderTable() {
                   }
 
                   ${
-                    entry.status === "recusado"
+                    entry.status === "recusado" &&
+                    canReopen
                       ? `
                         <button
                           class="btn btn-small btn-secondary"
@@ -338,13 +450,33 @@ function renderTable() {
                       : ""
                   }
 
-                  <button
-                    class="btn btn-small btn-danger"
-                    type="button"
-                    data-delete-pix="${entry.id}"
-                  >
-                    Excluir
-                  </button>
+                  ${
+                    canDelete
+                      ? `
+                        <button
+                          class="btn btn-small btn-danger"
+                          type="button"
+                          data-delete-pix="${entry.id}"
+                        >
+                          Excluir
+                        </button>
+                      `
+                      : ""
+                  }
+
+                  ${
+                    !canConfirm &&
+                    !canReject &&
+                    !canUnconfirm &&
+                    !canReopen &&
+                    !canDelete
+                      ? `
+                        <span class="status">
+                          Somente consulta
+                        </span>
+                      `
+                      : ""
+                  }
                 </div>
               </td>
             </tr>
@@ -428,6 +560,18 @@ async function loadEntries() {
 }
 
 async function confirmPix(id) {
+  if (
+    !hasSubPermission(
+      "pix",
+      "confirm"
+    )
+  ) {
+    alert(
+      "Esta conta não pode confirmar PIX."
+    );
+    return;
+  }
+
   const entry = pixEntries.find(item => item.id === id);
 
   if (!entry) return;
@@ -727,6 +871,18 @@ async function rollbackConfirmedPix(
 }
 
 async function unconfirmPix(id) {
+  if (
+    !hasSubPermission(
+      "pix",
+      "unconfirm"
+    )
+  ) {
+    alert(
+      "Esta conta não pode desconfirmar PIX."
+    );
+    return;
+  }
+
   const entry = pixEntries.find(item => item.id === id);
 
   if (!entry) return;
@@ -781,6 +937,18 @@ async function unconfirmPix(id) {
 }
 
 async function deletePixEntry(id) {
+  if (
+    !hasSubPermission(
+      "pix",
+      "delete"
+    )
+  ) {
+    alert(
+      "Esta conta não pode excluir PIX."
+    );
+    return;
+  }
+
   const entry = pixEntries.find(item => item.id === id);
 
   if (!entry) return;
@@ -859,6 +1027,18 @@ async function deletePixEntry(id) {
   }
 }
 async function rejectPix(id) {
+  if (
+    !hasSubPermission(
+      "pix",
+      "reject"
+    )
+  ) {
+    alert(
+      "Esta conta não pode recusar PIX."
+    );
+    return;
+  }
+
   const entry = pixEntries.find(item => item.id === id);
 
   if (!entry) return;
@@ -930,6 +1110,18 @@ async function rejectPix(id) {
   }
 }
 async function reopenPix(id) {
+  if (
+    !hasSubPermission(
+      "pix",
+      "reopen"
+    )
+  ) {
+    alert(
+      "Esta conta não pode reabrir PIX."
+    );
+    return;
+  }
+
   const entry = pixEntries.find(item => item.id === id);
 
   if (!entry) return;
@@ -1004,13 +1196,46 @@ function closePixConfiguration() {
   $("pixConfigModal").classList.add("hidden");
   document.body.classList.remove("modal-open");
 }
-function rawConfigFromForm() {
+function canConfigurePix() {
+  return hasSubPermission(
+    "pix",
+    "configurePix"
+  );
+}
+
+function canConfigureReceipts() {
+  return hasSubPermission(
+    "pix",
+    "configureReceipts"
+  );
+}
+
+function rawPixConfigFromForm() {
+  return {
+    keyType:
+      $("pixKeyType").value,
+    key:
+      $("pixKey").value,
+    holderName:
+      $("pixHolderName").value,
+    city:
+      $("pixCity").value,
+    description:
+      $("pixDescription").value,
+    active:
+      $("pixActive").checked
+  };
+}
+
+function receiptConfigFromForm() {
   const receiptUploadEnabled =
-    $("pixReceiptUploadEnabled").checked;
+    $("pixReceiptUploadEnabled")
+      .checked;
 
   const receiptUploadUrl =
     normalizeReceiptUploadUrl(
-      $("pixReceiptUploadUrl").value
+      $("pixReceiptUploadUrl")
+        .value
     );
 
   if (
@@ -1023,15 +1248,93 @@ function rawConfigFromForm() {
   }
 
   return {
-    keyType: $("pixKeyType").value,
-    key: $("pixKey").value,
-    holderName: $("pixHolderName").value,
-    city: $("pixCity").value,
-    description: $("pixDescription").value,
-    active: $("pixActive").checked,
     receiptUploadEnabled,
     receiptUploadUrl
   };
+}
+
+function applyPixConfigurationAccess() {
+  const pixAccess =
+    canConfigurePix();
+
+  const receiptAccess =
+    canConfigureReceipts();
+
+  [
+    "pixKeyType",
+    "pixKey",
+    "pixHolderName",
+    "pixCity",
+    "pixDescription",
+    "pixActive"
+  ].forEach(id => {
+    $(id).disabled =
+      !pixAccess;
+  });
+
+  [
+    "pixReceiptUploadEnabled",
+    "pixReceiptUploadUrl"
+  ].forEach(id => {
+    $(id).disabled =
+      !receiptAccess;
+  });
+
+  $("testPixConfigButton").hidden =
+    !pixAccess;
+
+  document
+    .querySelectorAll(
+      ".pix-main-config-field"
+    )
+    .forEach(element => {
+      element.hidden =
+        !pixAccess;
+    });
+
+  $("pixMainConfigPreview").hidden =
+    !pixAccess;
+
+  $("pixReceiptConfigSection").hidden =
+    !receiptAccess;
+
+  $("pixConfigModalTitle").textContent =
+    pixAccess && receiptAccess
+      ? "Configuração do PIX"
+      : (
+          pixAccess
+            ? "Dados do PIX"
+            : "Configuração dos comprovantes"
+        );
+
+  $("savePixConfigButton").disabled =
+    !pixAccess &&
+    !receiptAccess;
+
+  $("savePixConfigButton").textContent =
+    pixAccess && receiptAccess
+      ? "Salvar configuração do PIX"
+      : (
+          pixAccess
+            ? "Salvar dados do PIX"
+            : "Salvar configuração dos comprovantes"
+        );
+
+  if (
+    !pixAccess &&
+    !receiptAccess
+  ) {
+    $("pixConfigMessage").className =
+      "notice info";
+
+    $("pixConfigMessage").textContent =
+      "Esta conta possui acesso somente para consulta.";
+
+    $("pixConfigMessage")
+      .classList.remove(
+        "hidden"
+      );
+  }
 }
 
 function updateKeyHelp() {
@@ -1090,14 +1393,23 @@ function updateConfigurationStatus(configuration) {
 async function testConfiguration({
   showSuccess = true
 } = {}) {
-  const rawConfiguration = rawConfigFromForm();
+  const normalizedPix =
+    normalizePixConfig(
+      rawPixConfigFromForm()
+    );
 
   const configuration = {
-    ...normalizePixConfig(rawConfiguration),
+    ...normalizedPix,
+
     receiptUploadEnabled:
-      rawConfiguration.receiptUploadEnabled,
+      pixConfiguration
+        ?.receiptUploadEnabled ===
+      true,
+
     receiptUploadUrl:
-      rawConfiguration.receiptUploadUrl
+      pixConfiguration
+        ?.receiptUploadUrl ||
+      ""
   };
 
   const payload = buildPixPayload({
@@ -1180,6 +1492,7 @@ async function loadConfiguration() {
     updateConfigurationStatus(pixConfiguration);
 
     if (
+      canConfigurePix() &&
       pixConfiguration.key &&
       pixConfiguration.holderName &&
       pixConfiguration.city
@@ -1226,10 +1539,20 @@ bootstrapPage({
       loadEntries
     );
 
-    $("openPixConfigButton").addEventListener(
-      "click",
-      openPixConfiguration
-    );
+    const canOpenConfiguration =
+      canConfigurePix() ||
+      canConfigureReceipts();
+
+    if (canOpenConfiguration) {
+      $("openPixConfigButton")
+        .addEventListener(
+          "click",
+          openPixConfiguration
+        );
+    } else {
+      $("openPixConfigButton")
+        ?.remove();
+    }
 
     document.querySelectorAll(
       "[data-close-pix-config]"
@@ -1264,6 +1587,9 @@ bootstrapPage({
     $("testPixConfigButton").addEventListener(
       "click",
       async () => {
+        if (!canConfigurePix()) {
+          return;
+        }
         try {
           await testConfiguration();
         } catch (error) {
@@ -1289,23 +1615,58 @@ bootstrapPage({
         message.classList.add("hidden");
 
         try {
-          const configuration =
-            await testConfiguration({
-              showSuccess: false
-            });
+          const payload = {};
+
+          if (canConfigurePix()) {
+            Object.assign(
+              payload,
+              normalizePixConfig(
+                rawPixConfigFromForm()
+              )
+            );
+          }
+
+          if (
+            canConfigureReceipts()
+          ) {
+            Object.assign(
+              payload,
+              receiptConfigFromForm()
+            );
+          }
+
+          if (
+            !Object.keys(payload).length
+          ) {
+            return;
+          }
+
+          payload.updatedAt =
+            serverTimestamp();
+
+          payload.updatedBy =
+            currentUser.email;
 
           await setDoc(
-            doc(db, "configuracoes", "pixPublico"),
+            doc(
+              db,
+              "configuracoes",
+              "pixPublico"
+            ),
+            payload,
             {
-              ...configuration,
-              updatedAt: serverTimestamp(),
-              updatedBy: currentUser.email
-            },
-            { merge: true }
+              merge: true
+            }
           );
 
-          pixConfiguration = configuration;
-          updateConfigurationStatus(configuration);
+          pixConfiguration = {
+            ...(pixConfiguration || {}),
+            ...payload
+          };
+
+          updateConfigurationStatus(
+            pixConfiguration
+          );
 
           await tryRecordAdminLog({
             module: "configuracoes",
@@ -1315,16 +1676,20 @@ bootstrapPage({
             summary:
               "Configuração pública do PIX atualizada.",
             details: {
+              pixConfigurationEdited:
+                canConfigurePix(),
+              receiptsConfigurationEdited:
+                canConfigureReceipts(),
               keyType:
-                configuration.keyType,
+                payload.keyType || "",
               holderName:
-                configuration.holderName,
+                payload.holderName || "",
               city:
-                configuration.city,
+                payload.city || "",
               active:
-                configuration.active,
+                payload.active,
               receiptUploadEnabled:
-                configuration.receiptUploadEnabled
+                payload.receiptUploadEnabled
             }
           });
 
@@ -1342,12 +1707,24 @@ bootstrapPage({
             "Não foi possível salvar a configuração PIX.";
           message.classList.remove("hidden");
         } finally {
-          button.disabled = false;
+          button.disabled =
+            !canConfigurePix() &&
+            !canConfigureReceipts();
+
           button.textContent =
-            "Salvar configuração do PIX";
+            canConfigurePix() &&
+            canConfigureReceipts()
+              ? "Salvar configuração do PIX"
+              : (
+                  canConfigurePix()
+                    ? "Salvar dados do PIX"
+                    : "Salvar configuração dos comprovantes"
+                );
         }
       }
     );
+
+    applyPixConfigurationAccess();
 
     await Promise.all([
       loadEntries(),

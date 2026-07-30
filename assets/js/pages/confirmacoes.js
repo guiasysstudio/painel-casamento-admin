@@ -3,8 +3,9 @@ import {
   db,
   $,
   esc,
+  hasSubPermission,
   toast
-} from "../admin-core.js";
+} from "../admin-core.js?v=3.2.0";
 
 import {
   collection,
@@ -18,21 +19,43 @@ import {
 
 import {
   tryRecordAdminLog
-} from "../audit-log.js";
+} from "../audit-log.js?v=3.2.0";
 
 async function load() {
   const area = $("tableArea");
 
-  area.innerHTML =
-    '<div class="loading">Carregando...</div>';
+  area.innerHTML = `
+    <div class="loading">
+      Carregando...
+    </div>
+  `;
 
   try {
-    const snapshot = await getDocs(
-      query(
-        collection(db, "confirmacoes"),
-        orderBy("updatedAt", "desc")
-      )
-    );
+    const snapshot =
+      await getDocs(
+        query(
+          collection(
+            db,
+            "confirmacoes"
+          ),
+          orderBy(
+            "updatedAt",
+            "desc"
+          )
+        )
+      );
+
+    const canViewContacts =
+      hasSubPermission(
+        "confirmacoes",
+        "viewContacts"
+      );
+
+    const canChangeStatus =
+      hasSubPermission(
+        "confirmacoes",
+        "changeStatus"
+      );
 
     area.innerHTML = `
       <table>
@@ -52,78 +75,170 @@ async function load() {
 
         <tbody>
           ${
-            snapshot.docs.map(documentSnapshot => {
-              const confirmation =
-                documentSnapshot.data();
+            snapshot.docs.map(
+              documentSnapshot => {
+                const confirmation =
+                  documentSnapshot.data();
 
-              const children =
-                (confirmation.children || [])
-                  .map(child =>
-                    `${esc(child.name)} (${child.age})`
+                const children =
+                  (
+                    confirmation.children ||
+                    []
                   )
-                  .join(", ") || "—";
+                    .map(
+                      child =>
+                        `${esc(
+                          child.name
+                        )} (${child.age})`
+                    )
+                    .join(", ") ||
+                  "—";
 
-              return `
-                <tr>
-                  <td>
-                    <strong>
-                      ${esc(confirmation.responsibleName)}
-                    </strong>
-                  </td>
+                return `
+                  <tr>
+                    <td>
+                      <strong>
+                        ${esc(
+                          confirmation
+                            .responsibleName
+                        )}
+                      </strong>
+                    </td>
 
-                  <td>${esc(confirmation.whatsapp)}</td>
-                  <td>${esc(confirmation.spouseName || "—")}</td>
-                  <td>${children}</td>
-                  <td>${confirmation.counts?.adults || 0}</td>
-                  <td>${confirmation.counts?.children || 0}</td>
-                  <td>${confirmation.counts?.total || 0}</td>
-
-                  <td>
-                    <span class="status ${
-                      confirmation.status === "confirmada"
-                        ? "ok"
-                        : "bad"
-                    }">
-                      ${esc(confirmation.status)}
-                    </span>
-                  </td>
-
-                  <td>
-                    <button
-                      class="btn btn-small ${
-                        confirmation.status === "confirmada"
-                          ? "btn-danger"
-                          : "btn-primary"
-                      }"
-                      data-name="${esc(
-                        confirmation.responsibleName
-                      )}"
-                      data-status="${esc(
-                        confirmation.status
-                      )}"
-                      data-toggle="${esc(
-                        documentSnapshot.id
-                      )}"
-                      type="button"
-                    >
+                    <td>
                       ${
-                        confirmation.status === "confirmada"
-                          ? "Cancelar"
-                          : "Restaurar"
+                        canViewContacts
+                          ? esc(
+                              confirmation
+                                .whatsapp
+                            )
+                          : `
+                            <span class="status">
+                              Restrito
+                            </span>
+                          `
                       }
-                    </button>
-                  </td>
-                </tr>
-              `;
-            }).join("") ||
-            '<tr><td colspan="9">Nenhuma confirmação.</td></tr>'
+                    </td>
+
+                    <td>
+                      ${esc(
+                        confirmation
+                          .spouseName ||
+                        "—"
+                      )}
+                    </td>
+
+                    <td>
+                      ${children}
+                    </td>
+
+                    <td>
+                      ${
+                        confirmation
+                          .counts
+                          ?.adults || 0
+                      }
+                    </td>
+
+                    <td>
+                      ${
+                        confirmation
+                          .counts
+                          ?.children || 0
+                      }
+                    </td>
+
+                    <td>
+                      ${
+                        confirmation
+                          .counts
+                          ?.total || 0
+                      }
+                    </td>
+
+                    <td>
+                      <span
+                        class="status ${
+                          confirmation
+                            .status ===
+                          "confirmada"
+                            ? "ok"
+                            : "bad"
+                        }"
+                      >
+                        ${esc(
+                          confirmation
+                            .status
+                        )}
+                      </span>
+                    </td>
+
+                    <td>
+                      ${
+                        canChangeStatus
+                          ? `
+                            <button
+                              class="btn btn-small ${
+                                confirmation
+                                  .status ===
+                                "confirmada"
+                                  ? "btn-danger"
+                                  : "btn-primary"
+                              }"
+                              data-name="${esc(
+                                confirmation
+                                  .responsibleName
+                              )}"
+                              data-status="${esc(
+                                confirmation
+                                  .status
+                              )}"
+                              data-toggle="${esc(
+                                documentSnapshot
+                                  .id
+                              )}"
+                              type="button"
+                            >
+                              ${
+                                confirmation
+                                  .status ===
+                                "confirmada"
+                                  ? "Cancelar"
+                                  : "Restaurar"
+                              }
+                            </button>
+                          `
+                          : `
+                            <span class="status">
+                              Somente consulta
+                            </span>
+                          `
+                      }
+                    </td>
+                  </tr>
+                `;
+              }
+            ).join("") ||
+            `
+              <tr>
+                <td colspan="9">
+                  Nenhuma confirmação.
+                </td>
+              </tr>
+            `
           }
         </tbody>
       </table>
     `;
 
+    if (!canChangeStatus) {
+      return;
+    }
+
     area
-      .querySelectorAll("[data-toggle]")
+      .querySelectorAll(
+        "[data-toggle]"
+      )
       .forEach(button => {
         button.addEventListener(
           "click",
@@ -132,7 +247,8 @@ async function load() {
               button.dataset.status;
 
             const newStatus =
-              previousStatus === "confirmada"
+              previousStatus ===
+              "confirmada"
                 ? "cancelada"
                 : "confirmada";
 
@@ -144,24 +260,33 @@ async function load() {
               ),
               {
                 status: newStatus,
-                updatedAt: serverTimestamp()
+                updatedAt:
+                  serverTimestamp()
               }
             );
 
             await tryRecordAdminLog({
-              module: "confirmacoes",
-              action: "status_alterado",
+              module:
+                "confirmacoes",
+              action:
+                "status_alterado",
               recordId:
                 button.dataset.toggle,
               summary:
-                `Confirmação de ${button.dataset.name || "convidado"} alterada para ${newStatus}.`,
+                `Confirmação de ${
+                  button.dataset.name ||
+                  "convidado"
+                } alterada para ${newStatus}.`,
               details: {
                 previousStatus,
                 newStatus
               }
             });
 
-            toast("Confirmação atualizada");
+            toast(
+              "Confirmação atualizada"
+            );
+
             await load();
           }
         );

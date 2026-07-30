@@ -4,8 +4,9 @@ import {
   $,
   esc,
   money,
+  hasSubPermission,
   toast
-} from "../admin-core.js";
+} from "../admin-core.js?v=3.2.0";
 
 import {
   collection,
@@ -22,7 +23,7 @@ import {
 
 import {
   tryRecordAdminLog
-} from "../audit-log.js";
+} from "../audit-log.js?v=3.2.0";
 
 const DEFAULT_IMAGE_MODE = "fit";
 const DEFAULT_THRESHOLD = 45;
@@ -40,6 +41,7 @@ let sourceObjectUrl = "";
 let effectiveImageMode = DEFAULT_IMAGE_MODE;
 let imageProcessingStatus = "none";
 let imageProcessingTimer = null;
+let editingGiftData = null;
 
 function normalizeImageMode(value) {
   return ["original", "fit", "remove-white"].includes(value)
@@ -786,6 +788,24 @@ async function load() {
       query(collection(db, "presentes"), orderBy("nome"))
     );
 
+    const canEdit =
+      hasSubPermission(
+        "presentes",
+        "edit"
+      );
+
+    const canChangeVisibility =
+      hasSubPermission(
+        "presentes",
+        "changeVisibility"
+      );
+
+    const canDelete =
+      hasSubPermission(
+        "presentes",
+        "delete"
+      );
+
     area.innerHTML = `
       <table>
         <thead>
@@ -856,19 +876,48 @@ async function load() {
 
                   <td>
                     <div class="table-actions">
-                      <button
-                        class="btn btn-small btn-secondary"
-                        data-edit="${documentSnapshot.id}"
-                      >
-                        Editar
-                      </button>
+                      ${
+                        canEdit ||
+                        canChangeVisibility
+                          ? `
+                            <button
+                              class="btn btn-small btn-secondary"
+                              data-edit="${documentSnapshot.id}"
+                            >
+                              ${
+                                canEdit
+                                  ? "Editar"
+                                  : "Visibilidade"
+                              }
+                            </button>
+                          `
+                          : ""
+                      }
 
-                      <button
-                        class="btn btn-small btn-danger"
-                        data-delete="${documentSnapshot.id}"
-                      >
-                        Excluir
-                      </button>
+                      ${
+                        canDelete
+                          ? `
+                            <button
+                              class="btn btn-small btn-danger"
+                              data-delete="${documentSnapshot.id}"
+                            >
+                              Excluir
+                            </button>
+                          `
+                          : ""
+                      }
+
+                      ${
+                        !canEdit &&
+                        !canChangeVisibility &&
+                        !canDelete
+                          ? `
+                            <span class="status">
+                              Somente consulta
+                            </span>
+                          `
+                          : ""
+                      }
                     </div>
                   </td>
                 </tr>
@@ -901,6 +950,18 @@ async function load() {
 }
 
 async function removeGift(id) {
+  if (
+    !hasSubPermission(
+      "presentes",
+      "delete"
+    )
+  ) {
+    alert(
+      "Esta conta não pode excluir presentes."
+    );
+    return;
+  }
+
   try {
     const giftRef = doc(db, "presentes", id);
     const giftSnapshot = await getDoc(giftRef);
@@ -998,7 +1059,120 @@ async function edit(id) {
   }
 }
 
+function applyGiftFormAccess(isEditing) {
+  const canCreate =
+    hasSubPermission(
+      "presentes",
+      "create"
+    );
+
+  const canEdit =
+    hasSubPermission(
+      "presentes",
+      "edit"
+    );
+
+  const canChangeVisibility =
+    hasSubPermission(
+      "presentes",
+      "changeVisibility"
+    );
+
+  const canEditData =
+    isEditing
+      ? canEdit
+      : canCreate;
+
+  [
+    "giftName",
+    "giftCategory",
+    "giftValue",
+    "giftStore",
+    "giftLink",
+    "giftImageUrl",
+    "giftImageFile",
+    "giftImageMode",
+    "giftImageScale",
+    "giftRemoveInternalWhite",
+    "giftImageThreshold",
+    "processImageUrlButton",
+    "restoreOriginalImageButton"
+  ].forEach(id => {
+    const element = $(id);
+
+    if (element) {
+      element.disabled =
+        !canEditData;
+    }
+  });
+
+  $("giftActive").disabled =
+    !canChangeVisibility;
+
+  $("giftVisible").disabled =
+    !canChangeVisibility;
+
+  const submit =
+    document.querySelector(
+      '#giftForm button[type="submit"]'
+    );
+
+  if (submit) {
+    submit.disabled =
+      !canEditData &&
+      !canChangeVisibility;
+
+    submit.textContent =
+      canEditData
+        ? (
+            isEditing
+              ? "Salvar alterações"
+              : "Cadastrar presente"
+          )
+        : "Salvar visibilidade";
+  }
+}
+
 function open(id = "", gift = {}) {
+  const isEditing = Boolean(id);
+
+  if (
+    !isEditing &&
+    !hasSubPermission(
+      "presentes",
+      "create"
+    )
+  ) {
+    alert(
+      "Esta conta não pode cadastrar presentes."
+    );
+    return;
+  }
+
+  if (
+    isEditing &&
+    !hasSubPermission(
+      "presentes",
+      "edit"
+    ) &&
+    !hasSubPermission(
+      "presentes",
+      "changeVisibility"
+    )
+  ) {
+    alert(
+      "Esta conta não pode alterar este presente."
+    );
+    return;
+  }
+
+  editingGiftData =
+    isEditing
+      ? {
+          ...gift
+        }
+      : null;
+
   $("giftForm").reset();
   resetImageEditor();
 
@@ -1083,6 +1257,10 @@ function open(id = "", gift = {}) {
     );
   }
 
+  applyGiftFormAccess(
+    isEditing
+  );
+
   $("giftFormMessage").classList.add("hidden");
   $("giftModal").classList.remove("hidden");
   document.body.classList.add("modal-open");
@@ -1095,7 +1273,21 @@ bootstrapPage({
     await load();
 
     $("reloadButton").addEventListener("click", load);
-    $("newGiftButton").addEventListener("click", () => open());
+
+    if (
+      hasSubPermission(
+        "presentes",
+        "create"
+      )
+    ) {
+      $("newGiftButton")
+        .addEventListener(
+          "click",
+          () => open()
+        );
+    } else {
+      $("newGiftButton")?.remove();
+    }
 
     document.querySelectorAll("[data-close-modal]").forEach(button => {
       button.addEventListener("click", close);
@@ -1206,114 +1398,241 @@ bootstrapPage({
       }
     );
 
-    $("giftForm").addEventListener("submit", async event => {
-      event.preventDefault();
+    $("giftForm").addEventListener(
+      "submit",
+      async event => {
+        event.preventDefault();
 
-      const message = $("giftFormMessage");
+        const message =
+          $("giftFormMessage");
 
-      try {
-        if (
-          originalSource &&
-          !finalImageSource
-        ) {
-          await applyCurrentTreatment();
-        }
+        try {
+          const existingId =
+            $("giftId").value;
 
-        const existingId =
-          $("giftId").value;
+          const isEditing =
+            Boolean(existingId);
 
-        const isEditing =
-          Boolean(existingId);
-
-        const id =
-          existingId ||
-          `presente-${crypto.randomUUID()}`;
-
-        const savedOriginalUrl =
-          originalSourceType === "link"
-            ? originalSource
-            : "";
-
-        await setDoc(
-          doc(db, "presentes", id),
-          {
-            nome: $("giftName").value.trim(),
-            categoria: $("giftCategory").value.trim(),
-            valorEstimado: Number($("giftValue").value),
-            loja: $("giftStore").value.trim(),
-            linkCompra: $("giftLink").value.trim(),
-
-            imagemUrl: finalImageSource || "",
-            imagemOriginalUrl: savedOriginalUrl,
-            imageMode: effectiveImageMode,
-            imageThreshold: Number(
-              $("giftImageThreshold").value
-            ),
-            imageRemoveInternalWhite:
-              $("giftRemoveInternalWhite").checked,
-            imageScale: normalizeImageScale(
-              $("giftImageScale").value
-            ),
-            imageSourceType: originalSourceType || "",
-            imageProcessingStatus,
-
-            quantidade: 1,
-            ativo: $("giftActive").checked,
-            visivelPublico: $("giftVisible").checked,
-
-            purchaseStatus: "disponivel",
-            pixStatus: "sem_contribuicao",
-            pixConfirmedTotal: 0,
-            pixOverflowTotal: 0,
-            reservationId: null,
-            reservedByUid: null,
-            reservationExpiresAt: null,
-            updatedAt: serverTimestamp()
-          },
-          { merge: true }
-        );
-
-        await tryRecordAdminLog({
-          module: "presentes",
-          action:
+          const canEditData =
             isEditing
-              ? "atualizado"
-              : "criado",
-          recordId: id,
-          summary:
-            `Presente “${$("giftName").value.trim()}” ${
+              ? hasSubPermission(
+                  "presentes",
+                  "edit"
+                )
+              : hasSubPermission(
+                  "presentes",
+                  "create"
+                );
+
+          const canChangeVisibility =
+            hasSubPermission(
+              "presentes",
+              "changeVisibility"
+            );
+
+          if (
+            !canEditData &&
+            !canChangeVisibility
+          ) {
+            throw new Error(
+              "Esta conta não possui permissão para salvar alterações."
+            );
+          }
+
+          if (
+            canEditData &&
+            originalSource &&
+            !finalImageSource
+          ) {
+            await applyCurrentTreatment();
+          }
+
+          const id =
+            existingId ||
+            `presente-${crypto.randomUUID()}`;
+
+          const payload = {
+            updatedAt:
+              serverTimestamp()
+          };
+
+          if (canEditData) {
+            const savedOriginalUrl =
+              originalSourceType ===
+              "link"
+                ? originalSource
+                : "";
+
+            Object.assign(
+              payload,
+              {
+                nome:
+                  $("giftName")
+                    .value
+                    .trim(),
+
+                categoria:
+                  $("giftCategory")
+                    .value
+                    .trim(),
+
+                valorEstimado:
+                  Number(
+                    $("giftValue")
+                      .value
+                  ),
+
+                loja:
+                  $("giftStore")
+                    .value
+                    .trim(),
+
+                linkCompra:
+                  $("giftLink")
+                    .value
+                    .trim(),
+
+                imagemUrl:
+                  finalImageSource ||
+                  "",
+
+                imagemOriginalUrl:
+                  savedOriginalUrl,
+
+                imageMode:
+                  effectiveImageMode,
+
+                imageThreshold:
+                  Number(
+                    $("giftImageThreshold")
+                      .value
+                  ),
+
+                imageRemoveInternalWhite:
+                  $("giftRemoveInternalWhite")
+                    .checked,
+
+                imageScale:
+                  normalizeImageScale(
+                    $("giftImageScale")
+                      .value
+                  ),
+
+                imageSourceType:
+                  originalSourceType ||
+                  "",
+
+                imageProcessingStatus,
+
+                quantidade: 1
+              }
+            );
+          }
+
+          if (canChangeVisibility) {
+            payload.ativo =
+              $("giftActive").checked;
+
+            payload.visivelPublico =
+              $("giftVisible").checked;
+          } else if (!isEditing) {
+            payload.ativo = false;
+            payload.visivelPublico =
+              false;
+          }
+
+          if (!isEditing) {
+            Object.assign(
+              payload,
+              {
+                purchaseStatus:
+                  "disponivel",
+
+                pixStatus:
+                  "sem_contribuicao",
+
+                pixConfirmedTotal: 0,
+                pixOverflowTotal: 0,
+                reservationId: null,
+                reservationProfileId:
+                  null,
+                reservedByUid: null,
+                reservationExpiresAt:
+                  null,
+                createdAt:
+                  serverTimestamp()
+              }
+            );
+          }
+
+          await setDoc(
+            doc(
+              db,
+              "presentes",
+              id
+            ),
+            payload,
+            {
+              merge: true
+            }
+          );
+
+          const displayName =
+            canEditData
+              ? $("giftName")
+                  .value
+                  .trim()
+              : (
+                  editingGiftData
+                    ?.nome ||
+                  "Presente"
+                );
+
+          await tryRecordAdminLog({
+            module:
+              "presentes",
+            action:
               isEditing
                 ? "atualizado"
-                : "cadastrado"
-            }.`,
-          details: {
-            name:
-              $("giftName").value.trim(),
-            category:
-              $("giftCategory").value.trim(),
-            estimatedValue:
-              Number($("giftValue").value),
-            active:
-              $("giftActive").checked,
-            visible:
-              $("giftVisible").checked,
-            imageMode:
-              effectiveImageMode,
-            imageScale:
-              normalizeImageScale(
-                $("giftImageScale").value
-              )
-          }
-        });
+                : "criado",
+            recordId: id,
+            summary:
+              `Presente “${displayName}” ${
+                isEditing
+                  ? "atualizado"
+                  : "cadastrado"
+              }.`,
+            details: {
+              dataEdited:
+                canEditData,
+              visibilityEdited:
+                canChangeVisibility,
+              active:
+                payload.ativo,
+              visible:
+                payload
+                  .visivelPublico
+            }
+          });
 
-        toast("Presente salvo");
-        close();
-        await load();
-      } catch (error) {
-        message.className = "notice danger";
-        message.textContent = error.message;
-        message.classList.remove("hidden");
+          toast(
+            "Presente salvo"
+          );
+
+          close();
+          await load();
+        } catch (error) {
+          message.className =
+            "notice danger";
+
+          message.textContent =
+            error.message;
+
+          message.classList.remove(
+            "hidden"
+          );
+        }
       }
-    });
+    );
   }
 });

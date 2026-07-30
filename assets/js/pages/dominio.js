@@ -2,8 +2,9 @@ import {
   bootstrapPage,
   db,
   $,
+  hasSubPermission,
   toast
-} from "../admin-core.js";
+} from "../admin-core.js?v=3.2.0";
 
 import {
   applySiteButtonUrl,
@@ -20,47 +21,141 @@ import {
 
 import {
   tryRecordAdminLog
-} from "../audit-log.js";
+} from "../audit-log.js?v=3.2.0";
 
-function showCurrentSiteButtonUrl(value) {
-  const link = $("currentSiteButtonLink");
+function showCurrentSiteButtonUrl(
+  value
+) {
+  const link =
+    $("currentSiteButtonLink");
+
   let url = "";
 
   try {
-    url = normalizeSiteButtonUrl(value);
+    url =
+      normalizeSiteButtonUrl(value);
   } catch {
     url = "";
   }
 
   if (!url) {
-    link.textContent = "Nenhum link configurado";
+    link.textContent =
+      "Nenhum link configurado";
+
     link.href = "#";
-    link.removeAttribute("target");
-    link.setAttribute("aria-disabled", "true");
+
+    link.removeAttribute(
+      "target"
+    );
+
+    link.setAttribute(
+      "aria-disabled",
+      "true"
+    );
+
     return;
   }
 
   link.textContent = url;
   link.href = url;
   link.target = "_blank";
-  link.rel = "noopener noreferrer";
-  link.setAttribute("aria-disabled", "false");
+  link.rel =
+    "noopener noreferrer";
+
+  link.setAttribute(
+    "aria-disabled",
+    "false"
+  );
+}
+
+function applyAccess() {
+  const canEditDomains =
+    hasSubPermission(
+      "dominio",
+      "editDomains"
+    );
+
+  const canEditSiteButton =
+    hasSubPermission(
+      "dominio",
+      "editSiteButton"
+    );
+
+  [
+    "publicDomain",
+    "adminDomain"
+  ].forEach(id => {
+    $(id).disabled =
+      !canEditDomains;
+  });
+
+  const domainSubmit =
+    document.querySelector(
+      '#domainForm button[type="submit"]'
+    );
+
+  if (domainSubmit) {
+    domainSubmit.disabled =
+      !canEditDomains;
+  }
+
+  $("siteButtonUrl").disabled =
+    !canEditSiteButton;
+
+  $("saveSiteButtonUrl").disabled =
+    !canEditSiteButton;
+
+  $("usePublicDomainButton").disabled =
+    !canEditSiteButton;
+
+  if (!canEditDomains) {
+    $("domainForm")
+      .setAttribute(
+        "data-permission-blocked",
+        "true"
+      );
+  }
+
+  if (!canEditSiteButton) {
+    $("siteButtonForm")
+      .setAttribute(
+        "data-permission-blocked",
+        "true"
+      );
+  }
 }
 
 async function load() {
-  const [domainSnapshot, publicSnapshot] =
-    await Promise.all([
-      getDoc(doc(db, "configuracoes", "dominio")),
-      getDoc(doc(db, "configuracoes", "publico"))
-    ]);
+  const [
+    domainSnapshot,
+    publicSnapshot
+  ] = await Promise.all([
+    getDoc(
+      doc(
+        db,
+        "configuracoes",
+        "dominio"
+      )
+    ),
 
-  const domainData = domainSnapshot.exists()
-    ? domainSnapshot.data()
-    : {};
+    getDoc(
+      doc(
+        db,
+        "configuracoes",
+        "publico"
+      )
+    )
+  ]);
 
-  const publicData = publicSnapshot.exists()
-    ? publicSnapshot.data()
-    : {};
+  const domainData =
+    domainSnapshot.exists()
+      ? domainSnapshot.data()
+      : {};
+
+  const publicData =
+    publicSnapshot.exists()
+      ? publicSnapshot.data()
+      : {};
 
   $("publicDomain").value =
     domainData.publicDomain ||
@@ -85,42 +180,66 @@ async function load() {
 
 async function saveDomains() {
   const publicDomain =
-    $("publicDomain").value.trim();
+    $("publicDomain")
+      .value
+      .trim();
 
   const adminDomain =
-    $("adminDomain").value.trim();
+    $("adminDomain")
+      .value
+      .trim();
 
   await setDoc(
-    doc(db, "configuracoes", "dominio"),
+    doc(
+      db,
+      "configuracoes",
+      "dominio"
+    ),
     {
       publicDomain,
       adminDomain,
-      updatedAt: serverTimestamp()
+      updatedAt:
+        serverTimestamp()
     },
-    { merge: true }
+    {
+      merge: true
+    }
   );
 
   await setDoc(
-    doc(db, "configuracoes", "publico"),
+    doc(
+      db,
+      "configuracoes",
+      "publico"
+    ),
     {
-      domain: publicDomain,
-      updatedAt: serverTimestamp()
+      domain:
+        publicDomain,
+      updatedAt:
+        serverTimestamp()
     },
-    { merge: true }
+    {
+      merge: true
+    }
   );
 
   await tryRecordAdminLog({
-    module: "configuracoes",
+    module:
+      "configuracoes",
     action: "atualizado",
-    recordId: "configuracoes/dominio",
-    summary: "Domínios público e administrativo atualizados.",
+    recordId:
+      "configuracoes/dominio",
+    summary:
+      "Domínios público e administrativo atualizados.",
     details: {
       publicDomain,
       adminDomain
     }
   });
 
-  toast("Domínios salvos");
+  toast(
+    "Domínios salvos"
+  );
 }
 
 async function saveSiteButtonUrl() {
@@ -135,63 +254,95 @@ async function saveSiteButtonUrl() {
     );
   }
 
-  const batch = writeBatch(db);
-  const updatedAt = serverTimestamp();
+  const batch =
+    writeBatch(db);
+
+  const updatedAt =
+    serverTimestamp();
 
   batch.set(
-    doc(db, "configuracoes", "dominio"),
+    doc(
+      db,
+      "configuracoes",
+      "dominio"
+    ),
     {
-      siteButtonUrl: normalizedUrl,
+      siteButtonUrl:
+        normalizedUrl,
       updatedAt
     },
-    { merge: true }
+    {
+      merge: true
+    }
   );
 
-  /*
-   * O link também fica no documento público porque esse documento
-   * pode ser lido por qualquer ADM, independentemente das permissões.
-   */
   batch.set(
-    doc(db, "configuracoes", "publico"),
+    doc(
+      db,
+      "configuracoes",
+      "publico"
+    ),
     {
-      siteButtonUrl: normalizedUrl,
+      siteButtonUrl:
+        normalizedUrl,
       updatedAt
     },
-    { merge: true }
+    {
+      merge: true
+    }
   );
 
   await batch.commit();
 
-  $("siteButtonUrl").value = normalizedUrl;
-  applySiteButtonUrl(normalizedUrl);
-  showCurrentSiteButtonUrl(normalizedUrl);
+  $("siteButtonUrl").value =
+    normalizedUrl;
+
+  applySiteButtonUrl(
+    normalizedUrl
+  );
+
+  showCurrentSiteButtonUrl(
+    normalizedUrl
+  );
+
   await tryRecordAdminLog({
-    module: "configuracoes",
+    module:
+      "configuracoes",
     action: "atualizado",
-    recordId: "configuracoes/dominio",
-    summary: "Link do botão Site atualizado.",
+    recordId:
+      "configuracoes/dominio",
+    summary:
+      "Link do botão Site atualizado.",
     details: {
-      siteButtonUrl: normalizedUrl
+      siteButtonUrl:
+        normalizedUrl
     }
   });
 
-  toast("Link do botão Site salvo");
+  toast(
+    "Link do botão Site salvo"
+  );
 }
 
 function usePublicDomain() {
   const publicDomain =
-    $("publicDomain").value.trim();
+    $("publicDomain")
+      .value
+      .trim();
 
   if (!publicDomain) {
     alert(
       "Primeiro informe o domínio oficial do site público."
     );
+
     return;
   }
 
   try {
     $("siteButtonUrl").value =
-      normalizeSiteButtonUrl(publicDomain);
+      normalizeSiteButtonUrl(
+        publicDomain
+      );
   } catch (error) {
     alert(error.message);
   }
@@ -199,9 +350,10 @@ function usePublicDomain() {
 
 function testSiteButtonUrl() {
   try {
-    const url = normalizeSiteButtonUrl(
-      $("siteButtonUrl").value
-    );
+    const url =
+      normalizeSiteButtonUrl(
+        $("siteButtonUrl").value
+      );
 
     if (!url) {
       throw new Error(
@@ -209,14 +361,16 @@ function testSiteButtonUrl() {
       );
     }
 
-    const openedWindow = window.open(
-      url,
-      "_blank",
-      "noopener,noreferrer"
-    );
+    const openedWindow =
+      window.open(
+        url,
+        "_blank",
+        "noopener,noreferrer"
+      );
 
     if (openedWindow) {
-      openedWindow.opener = null;
+      openedWindow.opener =
+        null;
     }
   } catch (error) {
     alert(error.message);
@@ -224,58 +378,81 @@ function testSiteButtonUrl() {
 }
 
 bootstrapPage({
-  permission: "configuracoes",
+  permission: "dominio",
 
   onReady: async () => {
     await load();
+    applyAccess();
 
-    $("domainForm").addEventListener(
-      "submit",
-      async event => {
-        event.preventDefault();
+    $("domainForm")
+      .addEventListener(
+        "submit",
+        async event => {
+          event.preventDefault();
 
-        try {
-          await saveDomains();
-        } catch (error) {
-          alert(
-            error.message ||
-            "Não foi possível salvar os domínios."
-          );
+          if (
+            !hasSubPermission(
+              "dominio",
+              "editDomains"
+            )
+          ) {
+            return;
+          }
+
+          try {
+            await saveDomains();
+          } catch (error) {
+            alert(
+              error.message ||
+              "Não foi possível salvar os domínios."
+            );
+          }
         }
-      }
-    );
+      );
 
-    $("siteButtonForm").addEventListener(
-      "submit",
-      async event => {
-        event.preventDefault();
+    $("siteButtonForm")
+      .addEventListener(
+        "submit",
+        async event => {
+          event.preventDefault();
 
-        const button =
-          $("saveSiteButtonUrl");
+          if (
+            !hasSubPermission(
+              "dominio",
+              "editSiteButton"
+            )
+          ) {
+            return;
+          }
 
-        button.disabled = true;
+          const button =
+            $("saveSiteButtonUrl");
 
-        try {
-          await saveSiteButtonUrl();
-        } catch (error) {
-          alert(
-            error.message ||
-            "Não foi possível salvar o link do botão Site."
-          );
-        } finally {
-          button.disabled = false;
+          button.disabled = true;
+
+          try {
+            await saveSiteButtonUrl();
+          } catch (error) {
+            alert(
+              error.message ||
+              "Não foi possível salvar o link do botão Site."
+            );
+          } finally {
+            button.disabled = false;
+          }
         }
-      }
-    );
+      );
 
-    $("usePublicDomainButton").addEventListener(
-      "click",
-      usePublicDomain
-    );
+    $("usePublicDomainButton")
+      .addEventListener(
+        "click",
+        usePublicDomain
+      );
 
-    $("testSiteButtonUrl").addEventListener(
-      "click",
-      testSiteButtonUrl
-    );
+    $("testSiteButtonUrl")
+      .addEventListener(
+        "click",
+        testSiteButtonUrl
+      );
   }
 });

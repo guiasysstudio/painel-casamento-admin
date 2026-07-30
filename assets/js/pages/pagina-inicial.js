@@ -2,8 +2,9 @@ import {
   bootstrapPage,
   db,
   $,
+  hasSubPermission,
   toast
-} from "../admin-core.js";
+} from "../admin-core.js?v=3.2.0";
 
 import {
   doc,
@@ -15,7 +16,31 @@ import {
 
 import {
   tryRecordAdminLog
-} from "../audit-log.js";
+} from "../audit-log.js?v=3.2.0";
+
+const FIELD_GROUPS = Object.freeze({
+  editContent: [
+    "siteName",
+    "pageTitle",
+    "introText"
+  ],
+
+  editEvent: [
+    "weddingDate",
+    "venueName",
+    "venueAddress",
+    "mapsUrl"
+  ],
+
+  editDeadline: [
+    "confirmationDeadline"
+  ],
+
+  editReservationRules: [
+    "childMaxAge",
+    "reservationHours"
+  ]
+});
 
 function localInput(value) {
   if (!value) return "";
@@ -25,7 +50,8 @@ function localInput(value) {
     : new Date(value);
 
   const pad = number =>
-    String(number).padStart(2, "0");
+    String(number)
+      .padStart(2, "0");
 
   return (
     `${date.getFullYear()}-` +
@@ -36,122 +62,251 @@ function localInput(value) {
   );
 }
 
-async function load() {
-  const snapshot = await getDoc(
-    doc(
-      db,
-      "configuracoes",
-      "publico"
-    )
+function allowed(action) {
+  return hasSubPermission(
+    "paginaInicial",
+    action
   );
+}
 
-  if (!snapshot.exists()) return;
+function applyFormAccess() {
+  Object.entries(
+    FIELD_GROUPS
+  ).forEach(([action, fieldIds]) => {
+    const enabled =
+      allowed(action);
 
-  const configuration = snapshot.data();
+    fieldIds.forEach(id => {
+      const field = $(id);
+
+      if (!field) return;
+
+      field.disabled = !enabled;
+
+      field
+        .closest(".field")
+        ?.setAttribute(
+          "data-permission-blocked",
+          enabled
+            ? "false"
+            : "true"
+        );
+    });
+  });
+
+  const hasAnyEdit =
+    Object.keys(
+      FIELD_GROUPS
+    ).some(allowed);
+
+  const submitButton =
+    document.querySelector(
+      '#siteConfigForm button[type="submit"]'
+    );
+
+  if (submitButton) {
+    submitButton.disabled =
+      !hasAnyEdit;
+  }
+
+  if (!hasAnyEdit) {
+    $("siteConfigForm")
+      .insertAdjacentHTML(
+        "afterbegin",
+        `
+          <div class="notice info permission-restricted-note">
+            Esta conta possui acesso somente para consulta.
+          </div>
+        `
+      );
+  }
+}
+
+async function load() {
+  const snapshot =
+    await getDoc(
+      doc(
+        db,
+        "configuracoes",
+        "publico"
+      )
+    );
+
+  if (!snapshot.exists()) {
+    return;
+  }
+
+  const configuration =
+    snapshot.data();
 
   $("siteName").value =
     configuration.siteName || "";
+
   $("pageTitle").value =
     configuration.pageTitle || "";
+
   $("introText").value =
     configuration.introText || "";
+
   $("weddingDate").value =
-    localInput(configuration.weddingDate);
+    localInput(
+      configuration.weddingDate
+    );
+
   $("confirmationDeadline").value =
     localInput(
-      configuration.confirmationDeadline
+      configuration
+        .confirmationDeadline
     );
+
   $("venueName").value =
     configuration.venueName || "";
+
   $("venueAddress").value =
     configuration.venueAddress || "";
+
   $("mapsUrl").value =
     configuration.mapsUrl || "";
+
   $("childMaxAge").value =
-    configuration.childMaxAge ?? 12;
+    configuration.childMaxAge ??
+    12;
+
   $("reservationHours").value =
-    configuration.reservationHours ?? 24;
+    configuration
+      .reservationHours ??
+    24;
+}
+
+function buildAllowedPayload() {
+  const data = {};
+
+  if (allowed("editContent")) {
+    data.siteName =
+      $("siteName").value.trim();
+
+    data.pageTitle =
+      $("pageTitle")
+        .value
+        .trim();
+
+    data.introText =
+      $("introText")
+        .value
+        .trim();
+  }
+
+  if (allowed("editEvent")) {
+    data.weddingDate =
+      Timestamp.fromDate(
+        new Date(
+          $("weddingDate").value
+        )
+      );
+
+    data.venueName =
+      $("venueName")
+        .value
+        .trim();
+
+    data.venueAddress =
+      $("venueAddress")
+        .value
+        .trim();
+
+    data.mapsUrl =
+      $("mapsUrl")
+        .value
+        .trim();
+  }
+
+  if (allowed("editDeadline")) {
+    data.confirmationDeadline =
+      Timestamp.fromDate(
+        new Date(
+          $("confirmationDeadline")
+            .value
+        )
+      );
+  }
+
+  if (
+    allowed(
+      "editReservationRules"
+    )
+  ) {
+    data.childMaxAge =
+      Number(
+        $("childMaxAge").value
+      );
+
+    data.reservationHours =
+      Number(
+        $("reservationHours")
+          .value
+      );
+  }
+
+  return data;
 }
 
 bootstrapPage({
-  permission: "configuracoes",
+  permission: "paginaInicial",
 
   onReady: async () => {
     await load();
+    applyFormAccess();
 
-    $("siteConfigForm").addEventListener(
-      "submit",
-      async event => {
-        event.preventDefault();
+    $("siteConfigForm")
+      .addEventListener(
+        "submit",
+        async event => {
+          event.preventDefault();
 
-        const data = {
-          siteName:
-            $("siteName").value.trim(),
-          pageTitle:
-            $("pageTitle").value.trim(),
-          introText:
-            $("introText").value.trim(),
-          weddingDate:
-            Timestamp.fromDate(
-              new Date(
-                $("weddingDate").value
-              )
-            ),
-          confirmationDeadline:
-            Timestamp.fromDate(
-              new Date(
-                $("confirmationDeadline").value
-              )
-            ),
-          venueName:
-            $("venueName").value.trim(),
-          venueAddress:
-            $("venueAddress").value.trim(),
-          mapsUrl:
-            $("mapsUrl").value.trim(),
-          childMaxAge:
-            Number(
-              $("childMaxAge").value
-            ),
-          reservationHours:
-            Number(
-              $("reservationHours").value
-            ),
-          updatedAt:
-            serverTimestamp()
-        };
+          const data =
+            buildAllowedPayload();
 
-        await setDoc(
-          doc(
-            db,
-            "configuracoes",
-            "publico"
-          ),
-          data,
-          {
-            merge: true
+          if (
+            !Object.keys(data).length
+          ) {
+            return;
           }
-        );
 
-        await tryRecordAdminLog({
-          module: "configuracoes",
-          action: "atualizado",
-          recordId:
-            "configuracoes/publico",
-          summary:
-            "Conteúdo e dados da página inicial atualizados.",
-          details: {
-            siteName: data.siteName,
-            venueName: data.venueName,
-            childMaxAge:
-              data.childMaxAge,
-            reservationHours:
-              data.reservationHours
-          }
-        });
+          data.updatedAt =
+            serverTimestamp();
 
-        toast("Página inicial salva");
-      }
-    );
+          await setDoc(
+            doc(
+              db,
+              "configuracoes",
+              "publico"
+            ),
+            data,
+            {
+              merge: true
+            }
+          );
+
+          await tryRecordAdminLog({
+            module:
+              "configuracoes",
+            action: "atualizado",
+            recordId:
+              "configuracoes/publico",
+            summary:
+              "Dados autorizados da página inicial foram atualizados.",
+            details: {
+              changedGroups:
+                Object.keys(
+                  FIELD_GROUPS
+                ).filter(allowed)
+            }
+          });
+
+          toast(
+            "Página inicial salva"
+          );
+        }
+      );
   }
 });

@@ -1,4 +1,11 @@
-import { bootstrapPage, db, $, esc, toast } from "../admin-core.js";
+import {
+  bootstrapPage,
+  db,
+  $,
+  esc,
+  hasSubPermission,
+  toast
+} from "../admin-core.js?v=3.2.0";
 import {
   collection,
   getDocs,
@@ -11,7 +18,7 @@ import {
 
 import {
   tryRecordAdminLog
-} from "../audit-log.js";
+} from "../audit-log.js?v=3.2.0";
 
 function effectiveStatus(reservation) {
   const expiration = reservation.expiresAt?.toDate?.();
@@ -106,6 +113,31 @@ async function load() {
       )
     );
 
+    const canViewContacts =
+      hasSubPermission(
+        "reservas",
+        "viewContacts"
+      );
+
+    const canConfirmPurchase =
+      hasSubPermission(
+        "reservas",
+        "confirmPurchase"
+      );
+
+    const canReleaseReservation =
+      hasSubPermission(
+        "reservas",
+        "release"
+      );
+
+    const canUseWhatsapp =
+      canViewContacts &&
+      hasSubPermission(
+        "reservas",
+        "useWhatsapp"
+      );
+
     area.innerHTML = `
       <table>
         <thead>
@@ -141,7 +173,19 @@ async function load() {
                   <td>
                     ${esc(reservation.guestName)}
                     <br>
-                    <small>${esc(reservation.whatsapp)}</small>
+                    ${
+                      canViewContacts
+                        ? `
+                          <small>
+                            ${esc(reservation.whatsapp)}
+                          </small>
+                        `
+                        : `
+                          <small>
+                            Contato restrito
+                          </small>
+                        `
+                    }
                   </td>
 
                   <td>${esc(reservation.giftName)}</td>
@@ -174,6 +218,7 @@ async function load() {
                   <td>
                     <div class="table-actions">
                       ${
+                        canUseWhatsapp &&
                         status === "compra_confirmada" &&
                         guestWhatsappUrl
                           ? `
@@ -192,6 +237,7 @@ async function load() {
                       }
 
                       ${
+                        canConfirmPurchase &&
                         canConfirm
                           ? `
                             <button
@@ -205,6 +251,7 @@ async function load() {
                       }
 
                       ${
+                        canReleaseReservation &&
                         canRelease
                           ? `
                             <button
@@ -245,6 +292,18 @@ async function load() {
 }
 
 async function confirmPurchase(id) {
+  if (
+    !hasSubPermission(
+      "reservas",
+      "confirmPurchase"
+    )
+  ) {
+    alert(
+      "Esta conta não pode confirmar compras."
+    );
+    return;
+  }
+
   if (
     !confirm(
       "Confirmar que este presente foi comprado? Ele deixará de aparecer no site público."
@@ -347,6 +406,18 @@ async function confirmPurchase(id) {
 }
 
 async function release(id) {
+  if (
+    !hasSubPermission(
+      "reservas",
+      "release"
+    )
+  ) {
+    alert(
+      "Esta conta não pode liberar reservas."
+    );
+    return;
+  }
+
   if (
     !confirm(
       "Liberar este presente novamente na lista pública?"

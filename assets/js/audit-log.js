@@ -3,7 +3,7 @@ import {
   currentUser,
   currentAdmin,
   emailId
-} from "./admin-core.js";
+} from "./admin-core.js?v=3.2.0";
 
 import {
   collection,
