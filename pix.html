@@ -153,7 +153,7 @@
     );
   }
 })();
-</script><link href="assets/css/admin.css?v=3.2.0" rel="stylesheet"/><link href="assets/css/pix-admin.css?v=2.8.3" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.7" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script><script src="assets/js/site-button.js?v=2.8.2" type="module"></script><link href="assets/css/admin-mobile.css?v=2.9.2" rel="stylesheet"/><style id="admin-critical-layout-v292">
+</script><link href="assets/css/admin.css?v=3.2.0" rel="stylesheet"/><link href="assets/css/pix-admin.css?v=3.3.0" rel="stylesheet"/><link href="assets/css/icon-system.css?v=2.8.7" rel="stylesheet"/><script defer="" src="assets/js/icon-system.js?v=2.8.0"></script><script src="assets/js/site-button.js?v=2.8.2" type="module"></script><link href="assets/css/admin-mobile.css?v=2.9.2" rel="stylesheet"/><style id="admin-critical-layout-v292">
 @media (max-width:900px){
  body.admin-layout-v292 .section-head{display:block!important;position:static!important;width:100%!important;margin:0 0 16px!important;padding:0!important}
  body.admin-layout-v292 .section-head>div:not(.actions){display:block!important;position:static!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
@@ -322,6 +322,35 @@
     >
     Exigir e enviar comprovante pelo site público
   </label>
+
+  <div
+    class="pix-receipt-migration hidden"
+    id="pixReceiptMigrationSection"
+  >
+    <div>
+      <strong>
+        Proteção dos comprovantes existentes
+      </strong>
+
+      <small>
+        Move os metadados antigos para a coleção privada
+        e remove os links dos documentos públicos do PIX.
+      </small>
+    </div>
+
+    <button
+      class="btn btn-secondary"
+      id="migrateReceiptsButton"
+      type="button"
+    >
+      Migrar comprovantes existentes
+    </button>
+
+    <div
+      class="notice hidden"
+      id="receiptMigrationMessage"
+    ></div>
+  </div>
 </div>
 <div class="field full pix-main-config-field">
 <label class="checkbox-row">
@@ -350,4 +379,4 @@
 </div>
 </form></div>
 </div><div class="toast hidden" id="toast"></div>
-<script src="assets/js/pages/pix.js?v=3.2.0" type="module"></script></body></html>
+<script src="assets/js/pages/pix.js?v=3.3.0" type="module"></script></body></html>

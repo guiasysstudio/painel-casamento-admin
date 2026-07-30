@@ -33,7 +33,7 @@ import {
 import {
   recordAdminLog,
   tryRecordAdminLog
-} from "../audit-log.js?v=3.2.0";
+} from "../audit-log.js?v=3.3.0";
 
 import {
   normalizeAutomaticBackupUrl,
@@ -89,6 +89,14 @@ const ACTION_LABELS = Object.freeze({
   pix_desconfirmado: "PIX desconfirmado",
   pix_recusado: "PIX recusado",
   pix_reaberto: "PIX reaberto",
+  comprovante_enviado:
+    "Comprovante enviado",
+  comprovante_visualizado:
+    "Comprovante visualizado",
+  comprovante_acesso_negado:
+    "Acesso ao comprovante negado",
+  comprovantes_migrados:
+    "Comprovantes migrados",
   backup_gerado: "Backup gerado",
   backup_restaurado: "Backup restaurado",
   backup_automatico_configurado:
@@ -1075,6 +1083,12 @@ async function collectBackupModule(
   if (moduleId === "pix") {
     await collectCollection(
       ["pixInformados"],
+      moduleId,
+      records
+    );
+
+    await collectCollection(
+      ["comprovantesPix"],
       moduleId,
       records
     );

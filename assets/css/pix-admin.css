@@ -216,58 +216,48 @@
 }
 
 
-/* COMPROVANTES PIX NO GOOGLE DRIVE — 2.8.3 */
+/* PROTEÇÃO PRIVADA DOS COMPROVANTES — 3.3.0 */
 
-.pix-receipt-admin {
+.pix-receipt-migration {
   display: grid;
-  gap: 6px;
-  min-width: 170px;
-}
-
-.pix-receipt-admin .btn {
-  width: fit-content;
-}
-
-.pix-receipt-admin small {
-  display: block;
-  max-width: 230px;
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pix-receipt-config {
   gap: 10px;
-  padding: 14px;
-  border: 1px solid rgba(98, 51, 6, .18);
-  border-radius: 14px;
-  background: rgba(247, 242, 233, .7);
+  margin-top: 14px;
+  padding: 13px;
+  border: 1px solid rgba(98, 51, 6, .15);
+  border-radius: 13px;
+  background: rgba(247, 242, 233, .72);
 }
 
-.pix-receipt-config-heading {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.pix-receipt-config-heading .ui-icon {
-  --icon-size: 25px;
-  margin-top: 2px;
-  color: var(--terracotta);
-}
-
-.pix-receipt-config-heading div {
+.pix-receipt-migration > div:first-child {
   display: grid;
-  gap: 3px;
+  gap: 4px;
 }
 
-.pix-receipt-config-heading small,
-.pix-receipt-config > small {
+.pix-receipt-migration strong {
+  color: var(--dark);
+  font-size: .84rem;
+}
+
+.pix-receipt-migration small {
   color: var(--muted);
+  font-size: .74rem;
   line-height: 1.45;
 }
 
-.pix-receipt-config .checkbox-row {
-  margin-top: 4px;
+.pix-receipt-migration .btn {
+  width: fit-content;
+}
+
+.pix-receipt-migration .notice {
+  margin: 0;
+}
+
+.pix-receipt-admin button {
+  white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+  .pix-receipt-migration .btn {
+    width: 100%;
+  }
 }

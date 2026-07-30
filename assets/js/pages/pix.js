@@ -5,6 +5,7 @@ import {
   esc,
   money,
   currentUser,
+  currentAdmin,
   hasSubPermission,
   toast
 } from "../admin-core.js?v=3.2.0";
@@ -17,6 +18,8 @@ import {
   setDoc,
   updateDoc,
   runTransaction,
+  writeBatch,
+  deleteField,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
@@ -35,8 +38,13 @@ import {
   tryRecordAdminLog
 } from "../audit-log.js?v=3.2.0";
 
+import {
+  openSecureReceipt
+} from "../receipt-viewer-service.js?v=3.3.0";
+
 let pixEntries = [];
 let pixConfiguration = null;
+let privateReceipts = new Map();
 
 function pixMirrorRef(pix, pixId) {
   if (!pix?.profileId) return null;
@@ -335,34 +343,41 @@ function renderTable() {
                       </span>
                     `
                     : (
-                        entry.receiptFileUrl
+                        entry.receipt
                           ? `
                             <div class="pix-receipt-admin">
-                              <a
+                              <button
                                 class="btn btn-small btn-secondary"
-                                href="${esc(entry.receiptFileUrl)}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title="Abrir comprovante no Google Drive"
+                                data-view-receipt="${esc(entry.id)}"
+                                type="button"
+                                title="Abrir comprovante com validação de permissão"
                               >
                                 Abrir comprovante
-                              </a>
+                              </button>
 
-                              <small title="${esc(entry.receiptFileName || "")}">
-                                ${esc(entry.receiptFileName || "Arquivo enviado")}
+                              <small title="${esc(entry.receipt.fileName || "")}">
+                                ${esc(entry.receipt.fileName || "Arquivo enviado")}
                                 ${
-                                  entry.receiptSize
-                                    ? ` • ${esc(formatReceiptSize(entry.receiptSize))}`
+                                  entry.receipt.size
+                                    ? ` • ${esc(formatReceiptSize(entry.receipt.size))}`
                                     : ""
                                 }
                               </small>
                             </div>
                           `
-                          : `
-                            <span class="status warn">
-                              Não enviado
-                            </span>
-                          `
+                          : (
+                              entry.receiptStatus === "enviado"
+                                ? `
+                                  <span class="status warn">
+                                    Aguardando migração
+                                  </span>
+                                `
+                                : `
+                                  <span class="status warn">
+                                    Não enviado
+                                  </span>
+                                `
+                            )
                       )
                 }
               </td>
@@ -493,6 +508,22 @@ function renderTable() {
     </table>
   `;
 
+  area
+    .querySelectorAll(
+      "[data-view-receipt]"
+    )
+    .forEach(button => {
+      button.addEventListener(
+        "click",
+        async () => {
+          await viewReceiptSecurely(
+            button.dataset.viewReceipt,
+            button
+          );
+        }
+      );
+    });
+
   area.querySelectorAll("[data-confirm]").forEach(button => {
     button.addEventListener("click", () => {
       confirmPix(button.dataset.confirm);
@@ -524,26 +555,157 @@ function renderTable() {
   });
 }
 
+async function viewReceiptSecurely(
+  pixId,
+  button
+) {
+  if (
+    !hasSubPermission(
+      "pix",
+      "viewReceipts"
+    )
+  ) {
+    alert(
+      "Esta conta não pode visualizar comprovantes."
+    );
+    return;
+  }
+
+  const endpoint =
+    normalizeReceiptUploadUrl(
+      pixConfiguration
+        ?.receiptUploadUrl ||
+      $("pixReceiptUploadUrl")
+        ?.value ||
+      ""
+    );
+
+  if (!endpoint) {
+    alert(
+      "A URL do serviço de comprovantes não está configurada."
+    );
+    return;
+  }
+
+  if (!currentUser) {
+    alert(
+      "A sessão administrativa não está disponível."
+    );
+    return;
+  }
+
+  const originalText =
+    button.textContent;
+
+  button.disabled = true;
+  button.textContent =
+    "Abrindo...";
+
+  try {
+    const idToken =
+      await currentUser
+        .getIdToken(true);
+
+    await openSecureReceipt({
+      endpoint,
+      idToken,
+      pixId
+    });
+
+    toast(
+      "Comprovante aberto"
+    );
+  } catch (error) {
+    alert(
+      error.message ||
+      "Não foi possível abrir o comprovante."
+    );
+  } finally {
+    button.disabled = false;
+    button.textContent =
+      originalText;
+  }
+}
+
 async function loadEntries() {
   const area = $("tableArea");
+
   area.innerHTML =
     '<div class="loading">Carregando contribuições PIX...</div>';
 
   try {
-    const snapshot = await getDocs(
-      collection(db, "pixInformados")
-    );
+    const tasks = [
+      getDocs(
+        collection(
+          db,
+          "pixInformados"
+        )
+      )
+    ];
 
-    pixEntries = snapshot.docs
-      .map(documentSnapshot => ({
-        id: documentSnapshot.id,
-        ...documentSnapshot.data()
-      }))
-      .sort(
-        (a, b) =>
-          timestampMillis(b.createdAt) -
-          timestampMillis(a.createdAt)
+    if (
+      hasSubPermission(
+        "pix",
+        "viewReceipts"
+      )
+    ) {
+      tasks.push(
+        getDocs(
+          collection(
+            db,
+            "comprovantesPix"
+          )
+        )
       );
+    }
+
+    const [
+      pixSnapshot,
+      receiptSnapshot
+    ] = await Promise.all(tasks);
+
+    privateReceipts =
+      new Map();
+
+    receiptSnapshot?.docs
+      ?.forEach(
+        documentSnapshot => {
+          privateReceipts.set(
+            documentSnapshot.id,
+            {
+              id:
+                documentSnapshot.id,
+              ...documentSnapshot.data()
+            }
+          );
+        }
+      );
+
+    pixEntries =
+      pixSnapshot.docs
+        .map(
+          documentSnapshot => ({
+            id:
+              documentSnapshot.id,
+
+            ...documentSnapshot.data(),
+
+            receipt:
+              privateReceipts.get(
+                documentSnapshot.id
+              ) ||
+              null
+          })
+        )
+        .sort(
+          (a, b) =>
+            timestampMillis(
+              b.createdAt
+            ) -
+            timestampMillis(
+              a.createdAt
+            )
+        );
 
     updateStatistics();
     renderTable();
@@ -1000,6 +1162,14 @@ async function deletePixEntry(id) {
           transaction.delete(mirrorRef);
         }
       }
+
+      transaction.delete(
+        doc(
+          db,
+          "comprovantesPix",
+          id
+        )
+      );
     });
 
     await tryRecordAdminLog({
@@ -1186,10 +1356,414 @@ async function reopenPix(id) {
     );
   }
 }
+
+const LEGACY_RECEIPT_FIELDS = Object.freeze([
+  "receiptSource",
+  "receiptFileId",
+  "receiptFileName",
+  "receiptFileUrl",
+  "receiptMimeType",
+  "receiptSize",
+  "receiptUploadedAt"
+]);
+
+function legacyReceiptDeletePayload() {
+  return Object.fromEntries(
+    LEGACY_RECEIPT_FIELDS.map(
+      field => [
+        field,
+        deleteField()
+      ]
+    )
+  );
+}
+
+function hasLegacyReceiptMetadata(data) {
+  return Boolean(
+    data?.receiptFileId ||
+    data?.receiptFileUrl
+  );
+}
+
+function receiptMigrationMessage(
+  message,
+  type = "info"
+) {
+  const element =
+    $("receiptMigrationMessage");
+
+  if (!element) return;
+
+  element.className =
+    `notice ${type}`;
+
+  element.textContent =
+    message;
+
+  element.classList.remove(
+    "hidden"
+  );
+}
+
+async function migrateLegacyReceipts({
+  silent = false
+} = {}) {
+  if (
+    currentAdmin?.role !==
+    "master"
+  ) {
+    return {
+      migrated: 0,
+      cleaned: 0
+    };
+  }
+
+  const button =
+    $("migrateReceiptsButton");
+
+  if (button) {
+    button.disabled = true;
+    button.textContent =
+      "Migrando...";
+  }
+
+  if (!silent) {
+    receiptMigrationMessage(
+      "Verificando os comprovantes existentes..."
+    );
+  }
+
+  try {
+    const snapshot =
+      await getDocs(
+        collection(
+          db,
+          "pixInformados"
+        )
+      );
+
+    const candidates =
+      snapshot.docs.filter(
+        documentSnapshot =>
+          hasLegacyReceiptMetadata(
+            documentSnapshot.data()
+          )
+      );
+
+    if (!candidates.length) {
+      await setDoc(
+        doc(
+          db,
+          "configuracoes",
+          "pixPublico"
+        ),
+        {
+          receiptMetadataVersion: 2,
+          receiptMigrationStatus:
+            "concluida",
+          receiptMigrationCheckedAt:
+            serverTimestamp(),
+          updatedAt:
+            serverTimestamp()
+        },
+        {
+          merge: true
+        }
+      );
+
+      pixConfiguration = {
+        ...(pixConfiguration || {}),
+        receiptMetadataVersion: 2,
+        receiptMigrationStatus:
+          "concluida"
+      };
+
+      if (!silent) {
+        receiptMigrationMessage(
+          "Nenhum comprovante antigo precisa ser migrado.",
+          "success"
+        );
+      }
+
+      return {
+        migrated: 0,
+        cleaned: 0
+      };
+    }
+
+    let migrated = 0;
+    let cleaned = 0;
+
+    const chunkSize = 120;
+
+    for (
+      let offset = 0;
+      offset < candidates.length;
+      offset += chunkSize
+    ) {
+      const chunk =
+        candidates.slice(
+          offset,
+          offset + chunkSize
+        );
+
+      const mirrors =
+        await Promise.all(
+          chunk.map(
+            async documentSnapshot => {
+              const data =
+                documentSnapshot.data();
+
+              if (!data.profileId) {
+                return null;
+              }
+
+              const reference =
+                pixMirrorRef(
+                  data,
+                  documentSnapshot.id
+                );
+
+              if (!reference) {
+                return null;
+              }
+
+              const mirrorSnapshot =
+                await getDoc(reference);
+
+              return mirrorSnapshot.exists()
+                ? reference
+                : null;
+            }
+          )
+        );
+
+      const batch =
+        writeBatch(db);
+
+      chunk.forEach(
+        (
+          documentSnapshot,
+          index
+        ) => {
+          const data =
+            documentSnapshot.data();
+
+          const privateReference =
+            doc(
+              db,
+              "comprovantesPix",
+              documentSnapshot.id
+            );
+
+          batch.set(
+            privateReference,
+            {
+              pixId:
+                documentSnapshot.id,
+
+              profileId:
+                data.profileId || "",
+
+              ownerUid:
+                data.ownerUid || "",
+
+              txid:
+                data.txid || "",
+
+              source:
+                data.receiptSource ||
+                "google_drive",
+
+              fileId:
+                data.receiptFileId,
+
+              fileName:
+                data.receiptFileName ||
+                "Comprovante PIX",
+
+              mimeType:
+                data.receiptMimeType ||
+                "application/octet-stream",
+
+              size:
+                Number(
+                  data.receiptSize || 0
+                ),
+
+              uploadedAt:
+                data.receiptUploadedAt ||
+                data.createdAt ||
+                serverTimestamp(),
+
+              createdAt:
+                data.receiptUploadedAt ||
+                data.createdAt ||
+                serverTimestamp(),
+
+              updatedAt:
+                serverTimestamp(),
+
+              migratedAt:
+                serverTimestamp(),
+
+              migratedBy:
+                currentUser.email
+            },
+            {
+              merge: true
+            }
+          );
+
+          batch.update(
+            documentSnapshot.ref,
+            {
+              ...legacyReceiptDeletePayload(),
+              receiptStatus:
+                data.receiptStatus ||
+                "enviado",
+              updatedAt:
+                serverTimestamp()
+            }
+          );
+
+          const mirrorReference =
+            mirrors[index];
+
+          if (mirrorReference) {
+            batch.update(
+              mirrorReference,
+              {
+                ...legacyReceiptDeletePayload(),
+                receiptStatus:
+                  data.receiptStatus ||
+                  "enviado",
+                updatedAt:
+                  serverTimestamp()
+              }
+            );
+          }
+
+          migrated += 1;
+          cleaned +=
+            mirrorReference
+              ? 2
+              : 1;
+        }
+      );
+
+      await batch.commit();
+
+      if (!silent) {
+        receiptMigrationMessage(
+          `Migrando comprovantes: ${migrated}/${candidates.length}...`
+        );
+      }
+    }
+
+    await setDoc(
+      doc(
+        db,
+        "configuracoes",
+        "pixPublico"
+      ),
+      {
+        receiptMetadataVersion: 2,
+        receiptMigrationStatus:
+          "concluida",
+        receiptMigrationCount:
+          migrated,
+        receiptMigrationFinishedAt:
+          serverTimestamp(),
+        receiptMigrationFinishedBy:
+          currentUser.email,
+        updatedAt:
+          serverTimestamp()
+      },
+      {
+        merge: true
+      }
+    );
+
+    pixConfiguration = {
+      ...(pixConfiguration || {}),
+      receiptMetadataVersion: 2,
+      receiptMigrationStatus:
+        "concluida",
+      receiptMigrationCount:
+        migrated
+    };
+
+    await tryRecordAdminLog({
+      module: "pix",
+      action:
+        "comprovantes_migrados",
+      recordId:
+        "comprovantesPix",
+      summary:
+        `${migrated} comprovantes migrados para a coleção privada.`,
+      details: {
+        migrated,
+        cleanedDocuments:
+          cleaned,
+        metadataVersion: 2
+      }
+    });
+
+    receiptMigrationMessage(
+      `${migrated} comprovantes migrados e protegidos.`,
+      "success"
+    );
+
+    toast(
+      "Comprovantes migrados"
+    );
+
+    await loadEntries();
+
+    return {
+      migrated,
+      cleaned
+    };
+  } catch (error) {
+    receiptMigrationMessage(
+      error.message ||
+      "Não foi possível migrar os comprovantes.",
+      "danger"
+    );
+
+    if (silent) {
+      console.error(
+        "Erro na migração automática dos comprovantes.",
+        error
+      );
+    }
+
+    return {
+      migrated: 0,
+      cleaned: 0,
+      error
+    };
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent =
+        "Migrar comprovantes existentes";
+    }
+  }
+}
+
+
 function openPixConfiguration() {
   $("pixConfigModal").classList.remove("hidden");
   document.body.classList.add("modal-open");
-  $("pixKey").focus();
+
+  const focusTarget =
+    canConfigurePix()
+      ? $("pixKey")
+      : $("pixReceiptUploadUrl");
+
+  focusTarget?.focus();
 }
 
 function closePixConfiguration() {
@@ -1297,6 +1871,13 @@ function applyPixConfigurationAccess() {
 
   $("pixReceiptConfigSection").hidden =
     !receiptAccess;
+
+  $("pixReceiptMigrationSection")
+    ?.classList.toggle(
+      "hidden",
+      currentAdmin?.role !==
+        "master"
+    );
 
   $("pixConfigModalTitle").textContent =
     pixAccess && receiptAccess
@@ -1602,6 +2183,21 @@ bootstrapPage({
       }
     );
 
+    if (
+      currentAdmin?.role ===
+      "master"
+    ) {
+      $("migrateReceiptsButton")
+        ?.addEventListener(
+          "click",
+          async () => {
+            await migrateLegacyReceipts({
+              silent: false
+            });
+          }
+        );
+    }
+
     $("pixConfigForm").addEventListener(
       "submit",
       async event => {
@@ -1726,9 +2322,22 @@ bootstrapPage({
 
     applyPixConfigurationAccess();
 
-    await Promise.all([
-      loadEntries(),
-      loadConfiguration()
-    ]);
+    await loadConfiguration();
+
+    if (
+      currentAdmin?.role ===
+        "master" &&
+      Number(
+        pixConfiguration
+          ?.receiptMetadataVersion ||
+        0
+      ) < 2
+    ) {
+      await migrateLegacyReceipts({
+        silent: true
+      });
+    }
+
+    await loadEntries();
   }
 });
